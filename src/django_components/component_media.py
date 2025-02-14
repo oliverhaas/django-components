@@ -833,7 +833,16 @@ def _get_asset(
     asset_content = getattr(comp_media, inlined_attr, None)
     asset_file = getattr(comp_media, file_attr, None)
 
+    import threading
+
+    logger.warning(
+        "NORMAL Thread %s: Resolving asset file %s", threading.current_thread().name, asset_file,
+    )
     if asset_file is not None and asset_content is not None:
+        
+        logger.error(
+            "ERROR Thread %s: Resolving asset file %s", threading.current_thread().name, asset_file,
+        )
         raise ImproperlyConfigured(
             f"Received non-null value from both '{inlined_attr}' and '{file_attr}' in"
             f" Component {comp_cls.__name__}. Only one of the two must be set."
