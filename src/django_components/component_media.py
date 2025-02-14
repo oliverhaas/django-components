@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Literal, Optional, Protocol, Tuple, Type, Union, cast
 
 from django.contrib.staticfiles import finders
-from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Media as MediaCls
 from django.template import Template, TemplateDoesNotExist
 from django.template.loader import get_template
@@ -839,13 +838,8 @@ def _get_asset(
         "NORMAL Thread %s: Resolving asset file %s", threading.current_thread().name, asset_file,
     )
     if asset_file is not None and asset_content is not None:
-        
         logger.error(
             "ERROR Thread %s: Resolving asset file %s", threading.current_thread().name, asset_file,
-        )
-        raise ImproperlyConfigured(
-            f"Received non-null value from both '{inlined_attr}' and '{file_attr}' in"
-            f" Component {comp_cls.__name__}. Only one of the two must be set."
         )
 
     if asset_file is not None:
