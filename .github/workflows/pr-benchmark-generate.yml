@@ -1,0 +1,102 @@
+# Run benchmark report on pull requests to master.
+# The report is added to the PR as a comment.
+#
+# NOTE: When making a PR from a fork, the worker doesn't have sufficient
+# access to make comments on the target repo's PR. And so, this workflow
+# is split to two parts:
+#
+# 1. Benchmarking and saving results as artifacts
+# 2. Downloading the results and commenting on the PR
+#
+# See https://stackoverflow.com/a/71683208/9788634
+
+name: PR benchmarks generate
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history for ASV
+
+    - name: Fetch base branch
+      run: |
+        git remote add upstream https://github.com/${{ github.repository }}.git
+        git fetch upstream master
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install asv
+
+    - name: Run benchmarks
+      run: |
+        # TODO: REMOVE ONCE FIXED UPSTREAM
+        # Fix for https://github.com/airspeed-velocity/asv_runner/issues/45
+        # Prepare virtual environment
+        # Currently, we have to monkeypatch the `timeit` function in the `timeraw` benchmark.
+        # The problem is that `asv` passes the code to execute via command line, and when the
+        # code is too big, it fails with `OSError: [Errno 7] Argument list too long`.
+        # So we have to tweak it to pass the code via STDIN, which doesn't have this limitation.
+        #
+        # 1. First create the virtual environment, so that asv generates the directories where
+        #    the monkeypatch can be applied.
+        echo "Creating virtual environment..."
+        asv setup -v || true
+        echo "Virtual environment created."
+        # 2. Now let's apply the monkeypatch by appending it to the `timeraw.py` files.
+        # First find all `timeraw.py` files
+        echo "Applying monkeypatch..."
+        find .asv/env -type f -path "*/site-packages/asv_runner/benchmarks/timeraw.py" | while read -r file; do
+            # Add a newline and then append the monkeypatch contents
+            echo "" >> "$file"
+            cat "benchmarks/monkeypatch_asv_ci.txt" >> "$file"
+        done
+        echo "Monkeypatch applied."
+        # END OF MONKEYPATCH
+
+        # Prepare the profile under which the benchmarks will be saved.
+        # We assume that the CI machine has a name that is unique and stable.
+        # See https://github.com/airspeed-velocity/asv/issues/796#issuecomment-1188431794
+        echo "Preparing benchmarks profile..."
+        asv machine --yes
+        echo "Benchmarks profile DONE."
+
+        # Generate benchmark data
+        # - `^` means that we mean the COMMIT of the branch, not the BRANCH itself.
+        #       Without it, we would run benchmarks for the whole branch history.
+        #       With it, we run benchmarks FROM the latest commit (incl) TO ...
+        # - `!` means that we want to select range spanning a single commit.
+        #       Without it, we would run benchmarks for all commits FROM the latest commit
+        #       TO the start of the branch history.
+        #       With it, we run benchmarks ONLY FOR the latest commit.
+        echo "Running benchmarks for upstream/master..."
+        DJC_BENCHMARK_QUICK=1 asv run upstream/master^! -v
+        echo "Benchmarks for upstream/master DONE."
+        echo "Running benchmarks for HEAD..."
+        DJC_BENCHMARK_QUICK=1 asv run HEAD^! -v
+        echo "Benchmarks for HEAD DONE."
+
+        # Compare against master
+        echo "Comparing benchmarks..."
+        mkdir -p pr
+        asv compare upstream/master HEAD --factor 1.1 --split > ./pr/benchmark_results.md
+        echo "Benchmarks comparison DONE."
+
+    - name: Save benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark_results
+        path: pr/

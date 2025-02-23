@@ -128,7 +128,7 @@ dependencies = [
     "pre-commit",
     "black",
     "mypy",
-    ]
+]
 type = "pip-compile"
 lock-filename = "requirements-dev.txt"
 
