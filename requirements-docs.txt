@@ -26,7 +26,7 @@
 
 asgiref==3.8.1
     # via django
-babel==2.16.0
+babel==2.17.0
     # via
     #   mkdocs-git-revision-date-localized-plugin
     #   mkdocs-material
