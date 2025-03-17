@@ -138,7 +138,7 @@ mkdocs-git-authors-plugin==0.9.4
     # via hatch.envs.docs
 mkdocs-git-revision-date-localized-plugin==1.4.5
     # via hatch.envs.docs
-mkdocs-include-markdown-plugin==7.1.4
+mkdocs-include-markdown-plugin==7.1.5
     # via hatch.envs.docs
 mkdocs-material==9.6.9
     # via hatch.envs.docs
