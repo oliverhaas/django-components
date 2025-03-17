@@ -54,7 +54,7 @@ colorama==0.4.6
     #   mkdocs-material
 csscompressor==0.9.5
     # via mkdocs-minify-plugin
-cssselect2==0.7.0
+cssselect2==0.8.0
     # via cairosvg
 defusedxml==0.7.1
     # via cairosvg
