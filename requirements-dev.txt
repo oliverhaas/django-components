@@ -30,10 +30,12 @@ colorama==0.4.6
     # via tox
 distlib==0.3.9
     # via virtualenv
-django==5.1.7
+django==4.2.20
     # via -r requirements-dev.in
 djc-core-html-parser==1.0.2
     # via -r requirements-dev.in
+exceptiongroup==1.2.2
+    # via pytest
 filelock==3.16.1
     # via
     #   tox
@@ -51,7 +53,9 @@ identify==2.6.8
 idna==3.10
     # via requests
 importlib-metadata==8.5.0
-    # via asv-runner
+    # via
+    #   asv-runner
+    #   build
 iniconfig==2.0.0
     # via pytest
 isort==6.0.1
@@ -88,7 +92,7 @@ pluggy==1.5.0
     # via
     #   pytest
     #   tox
-pre-commit==4.1.0
+pre-commit==4.2.0
     # via -r requirements-dev.in
 pycodestyle==2.12.1
     # via flake8
@@ -130,14 +134,27 @@ syrupy==4.9.0
     # via -r requirements-dev.in
 tabulate==0.9.0
     # via asv
+tomli==2.2.1
+    # via
+    #   asv
+    #   black
+    #   build
+    #   flake8-pyproject
+    #   mypy
+    #   pyproject-api
+    #   pytest
+    #   tox
 tox==4.24.2
     # via -r requirements-dev.in
 types-requests==2.32.0.20241016
     # via -r requirements-dev.in
 typing-extensions==4.12.2
     # via
+    #   asgiref
+    #   black
     #   mypy
     #   pyee
+    #   tox
 urllib3==2.2.3
     # via
     #   requests
