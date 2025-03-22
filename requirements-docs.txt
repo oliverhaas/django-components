@@ -170,7 +170,7 @@ pillow==11.1.0
     # via
     #   cairosvg
     #   mkdocs-material
-platformdirs==4.3.6
+platformdirs==4.3.7
     # via
     #   black
     #   mkdocs-get-deps
