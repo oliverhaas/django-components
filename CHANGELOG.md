@@ -1,5 +1,28 @@
 # Release notes
 
+## v0.135
+
+#### Feat
+
+- `{% html_attrs %}` now offers a Vue-like granular control over `class` and `style` HTML attributes,
+where each class name or style property can be managed separately.
+
+    ```django
+    {% html_attrs
+        class="foo bar"
+        class={"baz": True, "foo": False}
+        class="extra"
+    %}
+    ```
+
+    ```django
+    {% html_attrs
+        style="text-align: center; background-color: blue;"
+        style={"background-color": "green", "color": None, "width": False}
+        style="position: absolute; height: 12px;"
+    %}
+    ```
+
 ## v0.134
 
 #### Fix

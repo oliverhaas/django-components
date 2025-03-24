@@ -191,9 +191,53 @@ class Calendar(Component):
 / %}
 ```
 
+### Granular HTML attributes
+
+Use the [`{% html_attrs %}`](../../concepts/fundamentals/html_attributes/) template tag to render HTML attributes.
+It supports:
+
+- Defining attributes as dictionaries
+- Defining attributes as keyword arguments
+- Merging attributes from multiple sources
+- Boolean attributes
+- Appending attributes
+- Removing attributes
+- Defining default attributes
+
+```django
+<div
+    {% html_attrs
+        attrs
+        defaults:class="default-class"
+        class="extra-class"
+    %}
+>
+```
+
+`{% html_attrs %}` offers a Vue-like granular control over `class` and `style` HTML attributes,
+where you can use a dictionary to manage each class name or style property separately.
+
+```django
+{% html_attrs
+    class="foo bar"
+    class={"baz": True, "foo": False}
+    class="extra"
+%}
+```
+
+```django
+{% html_attrs
+    style="text-align: center; background-color: blue;"
+    style={"background-color": "green", "color": None, "width": False}
+    style="position: absolute; height: 12px;"
+%}
+```
+
+Read more about [HTML attributes](../../concepts/fundamentals/html_attributes/).
+
 ### HTML fragment support
 
-`django-components` makes intergration with HTMX, AlpineJS or jQuery easy by allowing components to be rendered as HTML fragments:
+`django-components` makes integration with HTMX, AlpineJS or jQuery easy by allowing components to be rendered as HTML fragments:
 
 - Components's JS and CSS is loaded automatically when the fragment is inserted into the DOM.
 
@@ -335,7 +379,6 @@ def test_my_table():
 ### Other features
 
 - Vue-like provide / inject system
-- Format HTML attributes with `{% html_attrs %}`
 
 ## Performance
 
