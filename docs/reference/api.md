@@ -35,6 +35,10 @@
     options:
       show_if_no_docstring: true
 
+::: django_components.ComponentUrl
+    options:
+      show_if_no_docstring: true
+
 ::: django_components.ComponentVars
     options:
       show_if_no_docstring: true
@@ -120,6 +124,10 @@
       show_if_no_docstring: true
 
 ::: django_components.get_component_files
+    options:
+      show_if_no_docstring: true
+
+::: django_components.get_component_url
     options:
       show_if_no_docstring: true
 
