@@ -33,7 +33,31 @@
 
     This way you don't have to mix your app URLs with component URLs.
 
-    Read more on [Component views and URLs](https://django-components.github.io/django-components/0.135/concepts/fundamentals/component_views_urls/).
+    Read more on [Component views and URLs](https://django-components.github.io/django-components/0.137/concepts/fundamentals/component_views_urls/).
+
+- Per-component caching - Set `Component.Cache.enabled` to `True` to enable caching for a component.
+
+    Component caching allows you to store the rendered output of a component. Next time the component is rendered
+    with the same input, the cached output is returned instead of re-rendering the component.
+
+    ```py
+    class TestComponent(Component):
+        template = "Hello"
+
+        class Cache:
+            enabled = True
+            ttl = 0.1  # .1 seconds TTL
+            cache_name = "custom_cache"
+
+            # Custom hash method for args and kwargs
+            # NOTE: The default implementation simply serializes the input into a string.
+            #       As such, it might not be suitable for complex objects like Models.
+            def hash(self, *args, **kwargs):
+                return f"{json.dumps(args)}:{json.dumps(kwargs)}"
+
+    ```
+
+    Read more on [Component caching](https://django-components.github.io/django-components/0.137/concepts/advanced/component_caching/).
 
 - `@djc_test` can now be called without first calling `django.setup()`, in which case it does it for you.
 

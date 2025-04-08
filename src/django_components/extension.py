@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Tuple, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 import django.urls
 from django.template import Context
@@ -110,6 +110,18 @@ class OnComponentDataContext(NamedTuple):
     """Dictionary of JavaScript data from `Component.get_js_data()`"""
     css_data: Dict
     """Dictionary of CSS data from `Component.get_css_data()`"""
+
+
+@mark_extension_hook_api
+class OnComponentRenderedContext(NamedTuple):
+    component: "Component"
+    """The Component instance that is being rendered"""
+    component_cls: Type["Component"]
+    """The Component class"""
+    component_id: str
+    """The unique identifier for this component instance"""
+    result: str
+    """The rendered component"""
 
 
 ################################################
@@ -430,17 +442,26 @@ class ComponentExtension:
     # Component render hooks
     ###########################
 
-    def on_component_input(self, ctx: OnComponentInputContext) -> None:
+    def on_component_input(self, ctx: OnComponentInputContext) -> Optional[str]:
         """
         Called when a [`Component`](../api#django_components.Component) was triggered to render,
         but before a component's context and data methods are invoked.
 
-        This hook is called before
-        [`Component.get_context_data()`](../api#django_components.Component.get_context_data),
-        [`Component.get_js_data()`](../api#django_components.Component.get_js_data)
-        and [`Component.get_css_data()`](../api#django_components.Component.get_css_data).
-
         Use this hook to modify or validate component inputs before they're processed.
+
+        This is the first hook that is called when rendering a component. As such this hook is called before
+        [`Component.get_context_data()`](../api#django_components.Component.get_context_data),
+        [`Component.get_js_data()`](../api#django_components.Component.get_js_data),
+        and [`Component.get_css_data()`](../api#django_components.Component.get_css_data) methods,
+        and the
+        [`on_component_data`](../extension_hooks#django_components.extension.ComponentExtension.on_component_data)
+        hook.
+
+        This hook also allows to skip the rendering of a component altogether. If the hook returns
+        a non-null value, this value will be used instead of rendering the component.
+
+        You can use this to implement a caching mechanism for components, or define components
+        that will be rendered conditionally.
 
         **Example:**
 
@@ -457,8 +478,8 @@ class ComponentExtension:
 
     def on_component_data(self, ctx: OnComponentDataContext) -> None:
         """
-        Called when a Component was triggered to render, after a component's context
-        and data methods have been processed.
+        Called when a [`Component`](../api#django_components.Component) was triggered to render,
+        after a component's context and data methods have been processed.
 
         This hook is called after
         [`Component.get_context_data()`](../api#django_components.Component.get_context_data),
@@ -478,6 +499,28 @@ class ComponentExtension:
             def on_component_data(self, ctx: OnComponentDataContext) -> None:
                 # Add extra template variable to all components when they are rendered
                 ctx.context_data["my_template_var"] = "my_value"
+        ```
+        """
+        pass
+
+    def on_component_rendered(self, ctx: OnComponentRenderedContext) -> Optional[str]:
+        """
+        Called when a [`Component`](../api#django_components.Component) was rendered, including
+        all its child components.
+
+        Use this hook to access or post-process the component's rendered output.
+
+        To modify the output, return a new string from this hook.
+
+        **Example:**
+
+        ```python
+        from django_components import ComponentExtension, OnComponentRenderedContext
+
+        class MyExtension(ComponentExtension):
+            def on_component_rendered(self, ctx: OnComponentRenderedContext) -> Optional[str]:
+                # Append a comment to the component's rendered output
+                return ctx.result + "<!-- MyExtension comment -->"
         ```
         """
         pass
@@ -765,13 +808,24 @@ class ExtensionManager:
     # Component render hooks
     ###########################
 
-    def on_component_input(self, ctx: OnComponentInputContext) -> None:
+    def on_component_input(self, ctx: OnComponentInputContext) -> Optional[str]:
         for extension in self.extensions:
-            extension.on_component_input(ctx)
+            result = extension.on_component_input(ctx)
+            # The extension short-circuited the rendering process to return this
+            if result is not None:
+                return result
+        return None
 
     def on_component_data(self, ctx: OnComponentDataContext) -> None:
         for extension in self.extensions:
             extension.on_component_data(ctx)
+
+    def on_component_rendered(self, ctx: OnComponentRenderedContext) -> str:
+        for extension in self.extensions:
+            result = extension.on_component_rendered(ctx)
+            if result is not None:
+                ctx = ctx._replace(result=result)
+        return ctx.result
 
 
 # NOTE: This is a singleton which is takes the extensions from `app_settings.EXTENSIONS`
