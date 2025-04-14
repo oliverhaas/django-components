@@ -18,7 +18,6 @@ from typing import (
     Optional,
     Tuple,
     Type,
-    TypeVar,
     Union,
     cast,
 )
@@ -34,6 +33,7 @@ from django.template.loader_tags import BLOCK_CONTEXT_KEY, BlockContext
 from django.test.signals import template_rendered
 from django.utils.html import conditional_escape
 from django.views import View
+from typing_extensions import TypeVar
 
 from django_components.app_settings import ContextBehavior, app_settings
 from django_components.component_media import ComponentMediaInput, ComponentMediaMeta
@@ -103,12 +103,12 @@ from django_components.component_registry import registry as registry  # NOQA
 COMP_ONLY_FLAG = "only"
 
 # Define TypeVars for args and kwargs
-ArgsType = TypeVar("ArgsType", bound=tuple, contravariant=True)
-KwargsType = TypeVar("KwargsType", bound=Mapping[str, Any], contravariant=True)
-SlotsType = TypeVar("SlotsType", bound=Mapping[SlotName, SlotContent])
-DataType = TypeVar("DataType", bound=Mapping[str, Any], covariant=True)
-JsDataType = TypeVar("JsDataType", bound=Mapping[str, Any])
-CssDataType = TypeVar("CssDataType", bound=Mapping[str, Any])
+ArgsType = TypeVar("ArgsType", bound=tuple, contravariant=True, default=Any)
+KwargsType = TypeVar("KwargsType", bound=Mapping[str, Any], contravariant=True, default=Any)
+SlotsType = TypeVar("SlotsType", bound=Mapping[SlotName, SlotContent], default=Any)
+DataType = TypeVar("DataType", bound=Mapping[str, Any], covariant=True, default=Any)
+JsDataType = TypeVar("JsDataType", bound=Mapping[str, Any], default=Any)
+CssDataType = TypeVar("CssDataType", bound=Mapping[str, Any], default=Any)
 
 
 # NOTE: `ReferenceType` is NOT a generic pre-3.9
