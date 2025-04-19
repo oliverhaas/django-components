@@ -1306,6 +1306,8 @@ class Component(
         # The component rendering was short-circuited by an extension, skipping
         # the rest of the rendering process. This may be for example a cached content.
         if result_override is not None:
+            # Cleanup here as well
+            context.render_context.pop()
             return result_override
 
         # We pass down the components the info about the component's parent.
