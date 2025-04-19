@@ -215,6 +215,7 @@ class TestComponentCache:
         @register("test_component")
         class TestComponent(Component):
             template = "Hello"
+
             class Cache:
                 enabled = True
 
@@ -236,5 +237,3 @@ class TestComponentCache:
         result_cached = template.render(Context({}))
         assert "THIS_IS_IN_BASE_TEMPLATE_SO_SHOULD_BE_OVERRIDDEN" not in result_cached
         assert "THIS_IS_IN_ACTUAL_TEMPLATE_SO_SHOULD_NOT_BE_OVERRIDDEN" in result_cached
-
-
