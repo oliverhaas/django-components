@@ -218,9 +218,6 @@ class TestComponentCache:
             class Cache:
                 enabled = True
 
-            def get_context_data(self, **kwargs: Any):
-                return {"input": "world"}
-
         template = Template("""
             {% extends "test_cached_component_inside_include_base.html" %}
             {% block content %}
@@ -228,7 +225,6 @@ class TestComponentCache:
             {% endblock %}
         """)
 
-        # Provide a context object to the render call
         result = template.render(Context({}))
         assert "THIS_IS_IN_BASE_TEMPLATE_SO_SHOULD_BE_OVERRIDDEN" not in result
         assert "THIS_IS_IN_ACTUAL_TEMPLATE_SO_SHOULD_NOT_BE_OVERRIDDEN" in result
