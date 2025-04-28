@@ -38,7 +38,7 @@ cairocffi==1.7.1
     # via cairosvg
 cairosvg==2.7.1
     # via mkdocs-material
-certifi==2025.1.31
+certifi==2025.4.26
     # via requests
 cffi==1.17.1
     # via cairocffi
@@ -68,13 +68,13 @@ gitdb==4.0.12
     # via gitpython
 gitpython==3.1.44
     # via mkdocs-git-revision-date-localized-plugin
-griffe==1.7.2
+griffe==1.7.3
     # via mkdocstrings-python
 htmlmin2==0.1.13
     # via mkdocs-minify-plugin
 idna==3.10
     # via requests
-importlib-metadata==8.6.1
+importlib-metadata==8.7.0
     # via mike
 importlib-resources==6.5.2
     # via mike
@@ -134,7 +134,7 @@ mkdocs-get-deps==0.2.0
     # via
     #   mkdocs
     #   mkdocstrings
-mkdocs-git-authors-plugin==0.9.4
+mkdocs-git-authors-plugin==0.9.5
     # via hatch.envs.docs
 mkdocs-git-revision-date-localized-plugin==1.4.5
     # via hatch.envs.docs
@@ -183,7 +183,7 @@ pygments==2.19.1
     #   pygments-djc
 pygments-djc==1.0.1
     # via hatch.envs.docs
-pymdown-extensions==10.14.3
+pymdown-extensions==10.15
     # via
     #   hatch.envs.docs
     #   markdown-exec
