@@ -50,6 +50,24 @@ class SimpleComponent(Component):
 
 
 @djc_test
+class TestDependenciesLegacy:
+    # TODO_v1 - Remove
+    def test_render_with_type_arg(self):
+        rendered = SimpleComponent.render(kwargs={"variable": "foo"}, type="append")
+
+        # Dependency manager script NOT present
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
+
+        # Check that it contains inlined JS and CSS, and Media.css
+        assert rendered.strip() == (
+            'Variable: <strong data-djc-id-ca1bc3e="">foo</strong>\n'
+            '    <script src="script.js"></script><script>console.log("xyz");</script><style>.xyz {\n'
+            "            color: red;\n"
+            '        }</style><link href="style.css" media="all" rel="stylesheet">'
+        )
+
+
+@djc_test
 class TestRenderDependencies:
     def test_standalone_render_dependencies(self):
         registry.register(name="test", component=SimpleComponent)
@@ -61,7 +79,7 @@ class TestRenderDependencies:
             {% component 'test' variable='foo' / %}
         """
         template = Template(template_str)
-        rendered_raw = template.render(Context({}))
+        rendered_raw: str = template.render(Context({}))
 
         # Placeholders
         assert rendered_raw.count('<link name="CSS_PLACEHOLDER">') == 1
@@ -194,103 +212,6 @@ class TestRenderDependencies:
         assert rendered.count("<link") == 1
         assert rendered.count("<style") == 1
 
-    def test_inserts_styles_and_script_to_default_places_if_not_overriden(self):
-        registry.register(name="test", component=SimpleComponent)
-
-        template_str: types.django_html = """
-            {% load component_tags %}
-            <!DOCTYPE html>
-            <html>
-                <head></head>
-                <body>
-                    {% component "test" variable="foo" / %}
-                </body>
-            </html>
-        """
-        rendered_raw = Template(template_str).render(Context({}))
-        rendered = render_dependencies(rendered_raw)
-
-        assert rendered.count("<script") == 4
-        assert rendered.count("<style") == 1
-        assert rendered.count("<link") == 1
-        assert rendered.count("_RENDERED") == 0
-
-        assertInHTML(
-            """
-            <head>
-                <style>.xyz { color: red; }</style>
-                <link href="style.css" media="all" rel="stylesheet">
-            </head>
-            """,
-            rendered,
-            count=1,
-        )
-
-        body_re = re.compile(r"<body>(.*?)</body>", re.DOTALL)
-        rendered_body = body_re.search(rendered).group(1)  # type: ignore[union-attr]
-
-        assertInHTML(
-            """<script src="django_components/django_components.min.js">""",
-            rendered_body,
-            count=1,
-        )
-        assertInHTML(
-            '<script>console.log("xyz");</script>',
-            rendered_body,
-            count=1,
-        )
-
-    def test_does_not_insert_styles_and_script_to_default_places_if_overriden(self):
-        registry.register(name="test", component=SimpleComponent)
-
-        template_str: types.django_html = """
-            {% load component_tags %}
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    {% component_js_dependencies %}
-                </head>
-                <body>
-                    {% component "test" variable="foo" / %}
-                    {% component_css_dependencies %}
-                </body>
-            </html>
-        """
-        rendered_raw = Template(template_str).render(Context({}))
-        rendered = render_dependencies(rendered_raw)
-
-        assert rendered.count("<script") == 4
-        assert rendered.count("<style") == 1
-        assert rendered.count("<link") == 1
-        assert rendered.count("_RENDERED") == 0
-
-        assertInHTML(
-            """
-            <body>
-                Variable: <strong data-djc-id-ca1bc41>foo</strong>
-
-                <style>.xyz { color: red; }</style>
-                <link href="style.css" media="all" rel="stylesheet">
-            </body>
-            """,
-            rendered,
-            count=1,
-        )
-
-        head_re = re.compile(r"<head>(.*?)</head>", re.DOTALL)
-        rendered_head = head_re.search(rendered).group(1)  # type: ignore[union-attr]
-
-        assertInHTML(
-            """<script src="django_components/django_components.min.js">""",
-            rendered_head,
-            count=1,
-        )
-        assertInHTML(
-            '<script>console.log("xyz");</script>',
-            rendered_head,
-            count=1,
-        )
-
     # NOTE: Some HTML parser libraries like selectolax or lxml try to "correct" the given HTML.
     #       We want to avoid this behavior, so user gets the exact same HTML back.
     def test_does_not_try_to_add_close_tags(self):
@@ -301,7 +222,7 @@ class TestRenderDependencies:
         """
 
         rendered_raw = Template(template_str).render(Context({"formset": [1]}))
-        rendered = render_dependencies(rendered_raw, type="fragment")
+        rendered = render_dependencies(rendered_raw, strategy="fragment")
 
         assertHTMLEqual(rendered, "<thead>")
 
@@ -336,7 +257,7 @@ class TestRenderDependencies:
         """
 
         rendered_raw = Template(template_str).render(Context({"formset": [1]}))
-        rendered = render_dependencies(rendered_raw, type="fragment")
+        rendered = render_dependencies(rendered_raw, strategy="fragment")
 
         expected = """
             <table class="table-auto border-collapse divide-y divide-x divide-slate-300 w-full">
@@ -399,7 +320,7 @@ class TestRenderDependencies:
         """
 
         rendered_raw = Template(template_str).render(Context({"formset": [1]}))
-        rendered = render_dependencies(rendered_raw, type="fragment")
+        rendered = render_dependencies(rendered_raw, strategy="fragment")
 
         # Base64 encodings:
         # `PGxpbmsgaHJlZj0ic3R5bGUuY3NzIiBtZWRpYT0iYWxsIiByZWw9InN0eWxlc2hlZXQiPg==` -> `<link href="style.css" media="all" rel="stylesheet">`  # noqa: E501
@@ -470,6 +391,581 @@ class TestRenderDependencies:
             match=re.escape("Content of `Component.css` for component 'ComponentWithScript' contains '</style>' end tag."),  # noqa: E501
         ):
             ComponentWithScript.render(kwargs={"variable": "foo"})
+
+
+@djc_test
+class TestDependenciesStrategyDocument:
+    def test_inserts_styles_and_script_to_default_places_if_not_overriden(self):
+        registry.register(name="test", component=SimpleComponent)
+
+        template_str: types.django_html = """
+            {% load component_tags %}
+            <!DOCTYPE html>
+            <html>
+                <head></head>
+                <body>
+                    {% component "test" variable="foo" / %}
+                </body>
+            </html>
+        """
+        rendered_raw = Template(template_str).render(Context({}))
+        rendered = render_dependencies(rendered_raw, strategy="document")
+
+        assert rendered.count("<script") == 4
+        assert rendered.count("<style") == 1
+        assert rendered.count("<link") == 1
+        assert rendered.count("_RENDERED") == 0
+
+        assertInHTML(
+            """
+            <head>
+                <style>.xyz { color: red; }</style>
+                <link href="style.css" media="all" rel="stylesheet">
+            </head>
+            """,
+            rendered,
+            count=1,
+        )
+
+        body_re = re.compile(r"<body>(.*?)</body>", re.DOTALL)
+        rendered_body = body_re.search(rendered).group(1)  # type: ignore[union-attr]
+
+        assertInHTML(
+            """<script src="django_components/django_components.min.js">""",
+            rendered_body,
+            count=1,
+        )
+        assertInHTML(
+            '<script>console.log("xyz");</script>',
+            rendered_body,
+            count=1,
+        )
+
+    def test_does_not_insert_styles_and_script_to_default_places_if_overriden(self):
+        registry.register(name="test", component=SimpleComponent)
+
+        template_str: types.django_html = """
+            {% load component_tags %}
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    {% component_js_dependencies %}
+                </head>
+                <body>
+                    {% component "test" variable="foo" / %}
+                    {% component_css_dependencies %}
+                </body>
+            </html>
+        """
+        rendered_raw = Template(template_str).render(Context({}))
+        rendered = render_dependencies(rendered_raw, strategy="document")
+
+        assert rendered.count("<script") == 4
+        assert rendered.count("<style") == 1
+        assert rendered.count("<link") == 1
+        assert rendered.count("_RENDERED") == 0
+
+        assertInHTML(
+            """
+            <body>
+                Variable: <strong data-djc-id-ca1bc41>foo</strong>
+
+                <style>.xyz { color: red; }</style>
+                <link href="style.css" media="all" rel="stylesheet">
+            </body>
+            """,
+            rendered,
+            count=1,
+        )
+
+        head_re = re.compile(r"<head>(.*?)</head>", re.DOTALL)
+        rendered_head = head_re.search(rendered).group(1)  # type: ignore[union-attr]
+
+        assertInHTML(
+            """<script src="django_components/django_components.min.js">""",
+            rendered_head,
+            count=1,
+        )
+        assertInHTML(
+            '<script>console.log("xyz");</script>',
+            rendered_head,
+            count=1,
+        )
+
+
+@djc_test
+class TestDependenciesStrategySimple:
+    def test_single_component(self):
+        registry.register(name="test", component=SimpleComponent)
+
+        template_str: types.django_html = """
+            {% load component_tags %}
+            {% component_js_dependencies %}
+            {% component_css_dependencies %}
+            {% component 'test' variable='foo' / %}
+        """
+        template = Template(template_str)
+        rendered_raw: str = template.render(Context({}))
+
+        # Placeholders
+        assert rendered_raw.count('<link name="CSS_PLACEHOLDER">') == 1
+        assert rendered_raw.count('<script name="JS_PLACEHOLDER"></script>') == 1
+
+        assert rendered_raw.count("<script") == 1
+        assert rendered_raw.count("<style") == 0
+        assert rendered_raw.count("<link") == 1
+        assert rendered_raw.count("_RENDERED") == 1
+
+        rendered = render_dependencies(rendered_raw, strategy="simple")
+
+        # Dependency manager script NOT present
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
+
+        # Check that it contains inlined JS and CSS, and Media.css
+        assert rendered.strip() == (
+            '<script src="script.js"></script><script>console.log("xyz");</script>\n'
+            "            <style>.xyz {\n"
+            "            color: red;\n"
+            '        }</style><link href="style.css" media="all" rel="stylesheet">\n'
+            "            \n"
+            '        Variable: <strong data-djc-id-ca1bc41="">foo</strong>'
+        )
+
+    def test_multiple_components_dependencies(self):
+        class SimpleComponentNested(Component):
+            template: types.django_html = """
+                {% load component_tags %}
+                <div>
+                    {% component "inner" variable=variable / %}
+                    {% slot "default" default / %}
+                </div>
+            """
+
+            css: types.css = """
+                .my-class {
+                    color: red;
+                }
+            """
+
+            js: types.js = """
+                console.log("Hello");
+            """
+
+            def get_context_data(self, variable):
+                return {}
+
+            class Media:
+                css = ["style.css", "style2.css"]
+                js = "script2.js"
+
+        class OtherComponent(Component):
+            template: types.django_html = """
+                XYZ: <strong>{{ variable }}</strong>
+            """
+
+            css: types.css = """
+                .xyz {
+                    color: red;
+                }
+            """
+
+            js: types.js = """
+                console.log("xyz");
+            """
+
+            def get_context_data(self, variable):
+                return {}
+
+            class Media:
+                css = "xyz1.css"
+                js = "xyz1.js"
+
+        registry.register(name="inner", component=SimpleComponent)
+        registry.register(name="outer", component=SimpleComponentNested)
+        registry.register(name="other", component=OtherComponent)
+
+        template_str: types.django_html = """
+            {% load component_tags %}
+            {% component_js_dependencies %}
+            {% component_css_dependencies %}
+            {% component 'outer' variable='variable' %}
+                {% component 'other' variable='variable_inner' / %}
+            {% endcomponent %}
+        """
+        template = Template(template_str)
+        rendered_raw: str = template.render(Context({}))
+
+        rendered = render_dependencies(rendered_raw, strategy="simple")
+
+        # Dependency manager script NOT present
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
+
+        assert rendered.count("<script") == 6  # 3 Component.js and 3 Media.js
+        assert rendered.count("<link") == 3  # Media.css
+        assert rendered.count("<style") == 3  # Component.css
+
+        # Components' inlined CSS
+        # NOTE: Each of these should be present only ONCE!
+        assertInHTML(
+            """
+            <style>.my-class { color: red; }</style>
+            <style>.xyz { color: red; }</style>
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Components' Media.css
+        # Order:
+        # - "style.css", "style2.css" (from SimpleComponentNested)
+        # - "style.css" (from SimpleComponent inside SimpleComponentNested)
+        # - "xyz1.css" (from OtherComponent inserted into SimpleComponentNested)
+        assertInHTML(
+            """
+            <link href="style.css" media="all" rel="stylesheet">
+            <link href="style2.css" media="all" rel="stylesheet">
+            <link href="xyz1.css" media="all" rel="stylesheet">
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Components' Media.js followed by inlined JS
+        # Order:
+        # - "script2.js" (from SimpleComponentNested)
+        # - "script.js" (from SimpleComponent inside SimpleComponentNested)
+        # - "xyz1.js" (from OtherComponent inserted into SimpleComponentNested)
+        assertInHTML(
+            """
+            <script src="script2.js"></script>
+            <script src="script.js"></script>
+            <script src="xyz1.js"></script>
+            <script>console.log("Hello");</script>
+            <script>console.log("xyz");</script>
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Check that there's no payload like with "document" or "fragment" modes
+        assert "application/json" not in rendered
+
+
+@djc_test
+class TestDependenciesStrategyPrepend:
+    def test_single_component(self):
+        registry.register(name="test", component=SimpleComponent)
+
+        template_str: types.django_html = """
+            {% load component_tags %}
+            {% component_js_dependencies %}
+            {% component_css_dependencies %}
+            {% component 'test' variable='foo' / %}
+        """
+        template = Template(template_str)
+        rendered_raw: str = template.render(Context({}))
+
+        # Placeholders
+        assert rendered_raw.count('<link name="CSS_PLACEHOLDER">') == 1
+        assert rendered_raw.count('<script name="JS_PLACEHOLDER"></script>') == 1
+
+        assert rendered_raw.count("<script") == 1
+        assert rendered_raw.count("<style") == 0
+        assert rendered_raw.count("<link") == 1
+        assert rendered_raw.count("_RENDERED") == 1
+
+        rendered = render_dependencies(rendered_raw, strategy="prepend")
+
+        # Dependency manager script NOT present
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
+
+        # Check that it contains inlined JS and CSS, and Media.css
+        assert rendered.strip() == (
+            '<script src="script.js"></script><script>console.log("xyz");</script><style>.xyz {\n'
+            "            color: red;\n"
+            '        }</style><link href="style.css" media="all" rel="stylesheet">\n'
+            "            \n"
+            "            \n"
+            "            \n"
+            "            \n"
+            '        Variable: <strong data-djc-id-ca1bc41="">foo</strong>'
+        )
+
+    def test_multiple_components_dependencies(self):
+        class SimpleComponentNested(Component):
+            template: types.django_html = """
+                {% load component_tags %}
+                <div>
+                    {% component "inner" variable=variable / %}
+                    {% slot "default" default / %}
+                </div>
+            """
+
+            css: types.css = """
+                .my-class {
+                    color: red;
+                }
+            """
+
+            js: types.js = """
+                console.log("Hello");
+            """
+
+            def get_context_data(self, variable):
+                return {}
+
+            class Media:
+                css = ["style.css", "style2.css"]
+                js = "script2.js"
+
+        class OtherComponent(Component):
+            template: types.django_html = """
+                XYZ: <strong>{{ variable }}</strong>
+            """
+
+            css: types.css = """
+                .xyz {
+                    color: red;
+                }
+            """
+
+            js: types.js = """
+                console.log("xyz");
+            """
+
+            def get_context_data(self, variable):
+                return {}
+
+            class Media:
+                css = "xyz1.css"
+                js = "xyz1.js"
+
+        registry.register(name="inner", component=SimpleComponent)
+        registry.register(name="outer", component=SimpleComponentNested)
+        registry.register(name="other", component=OtherComponent)
+
+        template_str: types.django_html = """
+            {% load component_tags %}
+            {% component_js_dependencies %}
+            {% component_css_dependencies %}
+            {% component 'outer' variable='variable' %}
+                {% component 'other' variable='variable_inner' / %}
+            {% endcomponent %}
+        """
+        template = Template(template_str)
+        rendered_raw: str = template.render(Context({}))
+
+        rendered = render_dependencies(rendered_raw, strategy="prepend")
+
+        # Dependency manager script NOT present
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
+
+        assert rendered.count("<script") == 6  # 3 Component.js and 3 Media.js
+        assert rendered.count("<link") == 3  # Media.css
+        assert rendered.count("<style") == 3  # Component.css
+
+        # Components' inlined CSS
+        # NOTE: Each of these should be present only ONCE!
+        assertInHTML(
+            """
+            <style>.my-class { color: red; }</style>
+            <style>.xyz { color: red; }</style>
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Components' Media.css
+        # Order:
+        # - "style.css", "style2.css" (from SimpleComponentNested)
+        # - "style.css" (from SimpleComponent inside SimpleComponentNested)
+        # - "xyz1.css" (from OtherComponent inserted into SimpleComponentNested)
+        assertInHTML(
+            """
+            <link href="style.css" media="all" rel="stylesheet">
+            <link href="style2.css" media="all" rel="stylesheet">
+            <link href="xyz1.css" media="all" rel="stylesheet">
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Components' Media.js followed by inlined JS
+        # Order:
+        # - "script2.js" (from SimpleComponentNested)
+        # - "script.js" (from SimpleComponent inside SimpleComponentNested)
+        # - "xyz1.js" (from OtherComponent inserted into SimpleComponentNested)
+        assertInHTML(
+            """
+            <script src="script2.js"></script>
+            <script src="script.js"></script>
+            <script src="xyz1.js"></script>
+            <script>console.log("Hello");</script>
+            <script>console.log("xyz");</script>
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Check that there's no payload like with "document" or "fragment" modes
+        assert "application/json" not in rendered
+
+
+@djc_test
+class TestDependenciesStrategyAppend:
+    def test_single_component(self):
+        registry.register(name="test", component=SimpleComponent)
+
+        template_str: types.django_html = """
+            {% load component_tags %}
+            {% component_js_dependencies %}
+            {% component_css_dependencies %}
+            {% component 'test' variable='foo' / %}
+        """
+        template = Template(template_str)
+        rendered_raw: str = template.render(Context({}))
+
+        # Placeholders
+        assert rendered_raw.count('<link name="CSS_PLACEHOLDER">') == 1
+        assert rendered_raw.count('<script name="JS_PLACEHOLDER"></script>') == 1
+
+        assert rendered_raw.count("<script") == 1
+        assert rendered_raw.count("<style") == 0
+        assert rendered_raw.count("<link") == 1
+        assert rendered_raw.count("_RENDERED") == 1
+
+        rendered = render_dependencies(rendered_raw, strategy="append")
+
+        # Dependency manager script NOT present
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
+
+        # Check that it contains inlined JS and CSS, and Media.css
+        assert rendered.strip() == (
+            'Variable: <strong data-djc-id-ca1bc41="">foo</strong>\n'
+            "    \n"
+            '        <script src="script.js"></script><script>console.log("xyz");</script><style>.xyz {\n'
+            "            color: red;\n"
+            '        }</style><link href="style.css" media="all" rel="stylesheet">'
+        )
+
+    def test_multiple_components_dependencies(self):
+        class SimpleComponentNested(Component):
+            template: types.django_html = """
+                {% load component_tags %}
+                <div>
+                    {% component "inner" variable=variable / %}
+                    {% slot "default" default / %}
+                </div>
+            """
+
+            css: types.css = """
+                .my-class {
+                    color: red;
+                }
+            """
+
+            js: types.js = """
+                console.log("Hello");
+            """
+
+            def get_context_data(self, variable):
+                return {}
+
+            class Media:
+                css = ["style.css", "style2.css"]
+                js = "script2.js"
+
+        class OtherComponent(Component):
+            template: types.django_html = """
+                XYZ: <strong>{{ variable }}</strong>
+            """
+
+            css: types.css = """
+                .xyz {
+                    color: red;
+                }
+            """
+
+            js: types.js = """
+                console.log("xyz");
+            """
+
+            def get_context_data(self, variable):
+                return {}
+
+            class Media:
+                css = "xyz1.css"
+                js = "xyz1.js"
+
+        registry.register(name="inner", component=SimpleComponent)
+        registry.register(name="outer", component=SimpleComponentNested)
+        registry.register(name="other", component=OtherComponent)
+
+        template_str: types.django_html = """
+            {% load component_tags %}
+            {% component_js_dependencies %}
+            {% component_css_dependencies %}
+            {% component 'outer' variable='variable' %}
+                {% component 'other' variable='variable_inner' / %}
+            {% endcomponent %}
+        """
+        template = Template(template_str)
+        rendered_raw: str = template.render(Context({}))
+
+        rendered = render_dependencies(rendered_raw, strategy="append")
+
+        # Dependency manager script NOT present
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
+
+        assert rendered.count("<script") == 6  # 3 Component.js and 3 Media.js
+        assert rendered.count("<link") == 3  # Media.css
+        assert rendered.count("<style") == 3  # Component.css
+
+        # Components' inlined CSS
+        # NOTE: Each of these should be present only ONCE!
+        assertInHTML(
+            """
+            <style>.my-class { color: red; }</style>
+            <style>.xyz { color: red; }</style>
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Components' Media.css
+        # Order:
+        # - "style.css", "style2.css" (from SimpleComponentNested)
+        # - "style.css" (from SimpleComponent inside SimpleComponentNested)
+        # - "xyz1.css" (from OtherComponent inserted into SimpleComponentNested)
+        assertInHTML(
+            """
+            <link href="style.css" media="all" rel="stylesheet">
+            <link href="style2.css" media="all" rel="stylesheet">
+            <link href="xyz1.css" media="all" rel="stylesheet">
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Components' Media.js followed by inlined JS
+        # Order:
+        # - "script2.js" (from SimpleComponentNested)
+        # - "script.js" (from SimpleComponent inside SimpleComponentNested)
+        # - "xyz1.js" (from OtherComponent inserted into SimpleComponentNested)
+        assertInHTML(
+            """
+            <script src="script2.js"></script>
+            <script src="script.js"></script>
+            <script src="xyz1.js"></script>
+            <script>console.log("Hello");</script>
+            <script>console.log("xyz");</script>
+            """,
+            rendered,
+            count=1,
+        )
+
+        # Check that there's no payload like with "document" or "fragment" modes
+        assert "application/json" not in rendered
 
 
 @djc_test
