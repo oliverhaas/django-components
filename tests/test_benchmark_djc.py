@@ -70,7 +70,7 @@ if not settings.configured:
             "autodiscover": False,
             "context_behavior": CONTEXT_MODE,
         },
-        MIDDLEWARE=["django_components.middleware.ComponentDependencyMiddleware"],
+        MIDDLEWARE=[],
         DATABASES={
             "default": {
                 "ENGINE": "django.db.backends.sqlite3",
@@ -2455,6 +2455,7 @@ class ProjectLayoutTabbed(Component):
                             "stroke_width": 2,
                             "color": "text-gray-400 hover:text-gray-500",
                         },
+                        # deps_strategy="ignore",
                         render_dependencies=False,
                     ),
                 ),
@@ -4490,6 +4491,7 @@ class Tabs(Component):
                 "header_attrs": context["header_attrs"],
                 "content_attrs": context["content_attrs"],
             },
+            # deps_strategy="ignore",
             render_dependencies=False,
         )
 
@@ -5135,6 +5137,7 @@ class ProjectUsers(Component):
                         "project_id": project_id,
                         "role_id": role['id'],
                     },
+                    # deps_strategy="ignore",
                     render_dependencies=False,
                 )
             else:

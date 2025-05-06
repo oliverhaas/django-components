@@ -11,7 +11,7 @@ from pytest_django.asserts import assertHTMLEqual, assertInHTML
 from django_components import Component, registry, types
 from django_components.testing import djc_test
 
-from .testutils import create_and_process_template_response, setup_test_config
+from .testutils import setup_test_config
 
 setup_test_config({"autodiscover": False})
 
@@ -120,19 +120,24 @@ class TestDependencyRendering:
             {% component_css_dependencies %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered: str = template.render(Context({}))
 
         # Dependency manager script
-        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=1)
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
 
-        assert rendered.count("<script") == 1  # 1 boilerplate script
-        assert rendered.count("<link") == 0  # No CSS
+        assert rendered.count("<script") == 1  # 1 placeholder script
+        assert rendered.count("<link") == 1  # 1 placeholder link
         assert rendered.count("<style") == 0
 
         assert "loadedJsUrls" not in rendered
         assert "loadedCssUrls" not in rendered
         assert "toLoadJsTags" not in rendered
         assert "toLoadCssTags" not in rendered
+
+        assert rendered.strip() == (
+            '<script name="JS_PLACEHOLDER"></script>\n'
+            '            <link name="CSS_PLACEHOLDER">'
+        )
 
     def test_no_js_dependencies_when_no_components_used(self):
         registry.register(name="test", component=SimpleComponent)
@@ -141,12 +146,12 @@ class TestDependencyRendering:
             {% load component_tags %}{% component_js_dependencies %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         # Dependency manager script
-        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=1)
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
 
-        assert rendered.count("<script") == 1  # 1 boilerplate script
+        assert rendered.count("<script") == 1  # 1 placeholder script
         assert rendered.count("<link") == 0  # No CSS
         assert rendered.count("<style") == 0
 
@@ -155,6 +160,8 @@ class TestDependencyRendering:
         assert "toLoadJsTags" not in rendered
         assert "toLoadCssTags" not in rendered
 
+        assert rendered.strip() == '<script name="JS_PLACEHOLDER"></script>'
+
     def test_no_css_dependencies_when_no_components_used(self):
         registry.register(name="test", component=SimpleComponent)
 
@@ -162,11 +169,13 @@ class TestDependencyRendering:
             {% load component_tags %}{% component_css_dependencies %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered: str = template.render(Context({}))
 
         assert rendered.count("<script") == 0  # No JS
-        assert rendered.count("<link") == 0  # No CSS
+        assert rendered.count("<link") == 1  # 1 placeholder link
         assert rendered.count("<style") == 0
+
+        assert rendered.strip() == '<link name="CSS_PLACEHOLDER">'
 
     def test_single_component_dependencies(self):
         registry.register(name="test", component=SimpleComponent)
@@ -178,7 +187,7 @@ class TestDependencyRendering:
             {% component 'test' variable='foo' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         # Dependency manager script
         assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=1)
@@ -213,7 +222,7 @@ class TestDependencyRendering:
             {% component 'te-s/t' variable='foo' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         # Dependency manager script
         assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=1)
@@ -248,7 +257,7 @@ class TestDependencyRendering:
             {% component 'test' variable='foo' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         assert "_RENDERED" not in rendered
 
@@ -260,7 +269,7 @@ class TestDependencyRendering:
             {% component 'test' variable='foo' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         # Dependency manager script - NOT present
         assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
@@ -279,7 +288,7 @@ class TestDependencyRendering:
             {% component 'test' variable='foo' %}{% endcomponent %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         # Dependency manager script
         assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=1)
@@ -315,7 +324,7 @@ class TestDependencyRendering:
             {% component 'test' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         # Dependency manager script
         assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=1)
@@ -372,19 +381,24 @@ class TestDependencyRendering:
             {% component_css_dependencies %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered: str = template.render(Context({}))
 
         # Dependency manager script
-        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=1)
+        assertInHTML('<script src="django_components/django_components.min.js"></script>', rendered, count=0)
 
-        assert rendered.count("<script") == 1  # 1 boilerplate script
-        assert rendered.count("<link") == 0  # No CSS
+        assert rendered.count("<script") == 1  # 1 placeholder script
+        assert rendered.count("<link") == 1  # 1 placeholder link
         assert rendered.count("<style") == 0
 
         assert "loadedJsUrls" not in rendered
         assert "loadedCssUrls" not in rendered
         assert "toLoadJsTags" not in rendered
         assert "toLoadCssTags" not in rendered
+
+        assert rendered.strip() == (
+            '<script name="JS_PLACEHOLDER"></script>\n'
+            '            <link name="CSS_PLACEHOLDER">'
+        )
 
     def test_multiple_components_dependencies(self):
         registry.register(name="inner", component=SimpleComponent)
@@ -400,7 +414,7 @@ class TestDependencyRendering:
             {% endcomponent %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered: str = template.render(Context({}))
 
         # Dependency manager script
         # NOTE: Should be present only ONCE!
@@ -499,7 +513,7 @@ class TestDependencyRendering:
             {% component 'test' variable='variable' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
         assert "_RENDERED" not in rendered
 
     def test_adds_component_id_html_attr_single(self):
@@ -510,7 +524,7 @@ class TestDependencyRendering:
             {% component 'test' variable='foo' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         assertHTMLEqual(rendered, "Variable: <strong data-djc-id-ca1bc3f>foo</strong>")
 
@@ -529,7 +543,7 @@ class TestDependencyRendering:
             {% component 'test' variable='foo' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         assertHTMLEqual(
             rendered,
@@ -565,7 +579,7 @@ class TestDependencyRendering:
             {% component 'outer' variable='foo' / %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(template)
+        rendered = template.render(Context({}))
 
         assertHTMLEqual(
             rendered,
@@ -605,10 +619,7 @@ class TestDependencyRendering:
             {% endfor %}
         """
         template = Template(template_str)
-        rendered = create_and_process_template_response(
-            template,
-            context=Context({"lst": range(3)}),
-        )
+        rendered = template.render(Context({"lst": range(3)}))
 
         assertHTMLEqual(
             rendered,

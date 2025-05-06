@@ -185,7 +185,9 @@ class ComponentInput:
     # TODO_v1 - Remove, superseded by `deps_strategy`
     type: DependenciesStrategy
     """Deprecated alias for `deps_strategy`."""
+    # TODO_v1 - Remove, superseded by `deps_strategy`
     render_dependencies: bool
+    """Deprecated. Instead use `deps_strategy="ignore"`."""
 
 
 @dataclass()
@@ -1999,6 +2001,7 @@ class Component(metaclass=ComponentMeta):
         deps_strategy: DependenciesStrategy = "document",
         # TODO_v1 - Remove, superseded by `deps_strategy`
         type: Optional[DependenciesStrategy] = None,
+        # TODO_v1 - Remove, superseded by `deps_strategy="ignore"`
         render_dependencies: bool = True,
         request: Optional[HttpRequest] = None,
         **response_kwargs: Any,
@@ -2063,6 +2066,7 @@ class Component(metaclass=ComponentMeta):
             deps_strategy=deps_strategy,
             # TODO_v1 - Remove, superseded by `deps_strategy`
             type=type,
+            # TODO_v1 - Remove, superseded by `deps_strategy`
             render_dependencies=render_dependencies,
             request=request,
         )
@@ -2079,6 +2083,7 @@ class Component(metaclass=ComponentMeta):
         deps_strategy: DependenciesStrategy = "document",
         # TODO_v1 - Remove, superseded by `deps_strategy`
         type: Optional[DependenciesStrategy] = None,
+        # TODO_v1 - Remove, superseded by `deps_strategy="ignore"`
         render_dependencies: bool = True,
         request: Optional[HttpRequest] = None,
     ) -> str:
@@ -2176,7 +2181,7 @@ class Component(metaclass=ComponentMeta):
                     icon = Icon.render(
                         context=context,
                         args=["icon-name"],
-                        render_dependencies=False,
+                        deps_strategy="ignore",
                     )
                     # Update context with icon
                     with context.update({"icon": icon}):
@@ -2194,7 +2199,7 @@ class Component(metaclass=ComponentMeta):
         - `deps_strategy` - Optional. Configure how to handle JS and CSS dependencies. Read more about
             [Dependencies rendering](../../concepts/fundamentals/rendering_components#dependencies-rendering).
 
-            There are five strategies:
+            There are six strategies:
 
             - [`"document"`](../../concepts/advanced/rendering_js_css#document) (default)
                 - Smartly inserts JS / CSS into placeholders or into `<head>` and `<body>` tags.
@@ -2212,6 +2217,10 @@ class Component(metaclass=ComponentMeta):
             - [`"append"`](../../concepts/advanced/rendering_js_css#append)
                 - Insert JS / CSS after the rendered HTML.
                 - No extra script loaded.
+            - [`"ignore"`](../../concepts/advanced/rendering_js_css#ignore)
+                - HTML is left as-is. You can still process it with a different strategy later with
+                  [`render_dependencies()`](../api/#django_components.render_dependencies).
+                - Used for inserting rendered HTML into other components.
 
         - `request` - Optional. HTTPRequest object. Pass a request object directly to the component to apply
             [context processors](https://docs.djangoproject.com/en/5.2/ref/templates/api/#django.template.Context.update).
@@ -2221,22 +2230,6 @@ class Component(metaclass=ComponentMeta):
         - `escape_slots_content` - Optional. Whether the content from `slots` should be escaped with Django's
             [`escape`](https://docs.djangoproject.com/en/5.2/ref/templates/builtins/#std-templatefilter-escape).
             Defaults to `True`.
-
-        - `render_dependencies` - Optional. Whether the output should be processed to finalize JS and CSS dependencies.
-            Defaults to `True`.
-
-            Set this to `False` if you want to insert the resulting HTML into another component:
-
-            ```py
-            html = Button.render(
-                render_dependencies=False,
-            )
-
-            # Insert the resulting HTML into another component
-            MyOtherComponent.render(
-                content=html,
-            )
-            ```
 
         **Type hints:**
 
@@ -2295,8 +2288,12 @@ class Component(metaclass=ComponentMeta):
                 )
             deps_strategy = type
 
+        # TODO_v1 - Remove, superseded by `deps_strategy="ignore"`
+        if not render_dependencies:
+            deps_strategy = "ignore"
+
         return comp._render_with_error_trace(
-            context, args, kwargs, slots, escape_slots_content, deps_strategy, render_dependencies, request
+            context, args, kwargs, slots, escape_slots_content, deps_strategy, request
         )
 
     # This is the internal entrypoint for the render function
@@ -2308,14 +2305,11 @@ class Component(metaclass=ComponentMeta):
         slots: Optional[Any] = None,
         escape_slots_content: bool = True,
         deps_strategy: DependenciesStrategy = "document",
-        render_dependencies: bool = True,
         request: Optional[HttpRequest] = None,
     ) -> str:
         # Modify the error to display full component path (incl. slots)
         with component_error_message([self.name]):
-            return self._render_impl(
-                context, args, kwargs, slots, escape_slots_content, deps_strategy, render_dependencies, request
-            )
+            return self._render_impl(context, args, kwargs, slots, escape_slots_content, deps_strategy, request)
 
     def _render_impl(
         self,
@@ -2325,7 +2319,6 @@ class Component(metaclass=ComponentMeta):
         slots: Optional[Any] = None,
         escape_slots_content: bool = True,
         deps_strategy: DependenciesStrategy = "document",
-        render_dependencies: bool = True,
         request: Optional[HttpRequest] = None,
     ) -> str:
         # Allow to pass down Request object via context.
@@ -2382,7 +2375,8 @@ class Component(metaclass=ComponentMeta):
                 deps_strategy=deps_strategy,
                 # TODO_v1 - Remove, superseded by `deps_strategy`
                 type=deps_strategy,
-                render_dependencies=render_dependencies,
+                # TODO_v1 - Remove, superseded by `deps_strategy`
+                render_dependencies=deps_strategy != "ignore",
             ),
             is_filled=None,
             request=request,
@@ -2571,10 +2565,9 @@ class Component(metaclass=ComponentMeta):
         post_render_callbacks[render_id] = on_component_rendered
 
         # This is triggered after a full component tree was rendered, we resolve
-        # all inserted HTML comments into <script> and <link> tags (if render_dependencies=True)
+        # all inserted HTML comments into <script> and <link> tags.
         def on_html_rendered(html: str) -> str:
-            if render_dependencies:
-                html = _render_dependencies(html, deps_strategy)
+            html = _render_dependencies(html, deps_strategy)
             return html
 
         trace_component_msg(
@@ -2971,7 +2964,7 @@ class ComponentNode(BaseNode):
             slots=slot_fills,
             # NOTE: When we render components inside the template via template tags,
             # do NOT render deps, because this may be decided by outer component
-            render_dependencies=False,
+            deps_strategy="ignore",
         )
 
         return output
