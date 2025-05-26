@@ -121,7 +121,7 @@ mkdocs==1.6.1
     #   mkdocs-minify-plugin
     #   mkdocs-redirects
     #   mkdocstrings
-mkdocs-autorefs==1.4.1
+mkdocs-autorefs==1.4.2
     # via
     #   hatch.envs.docs
     #   mkdocstrings
