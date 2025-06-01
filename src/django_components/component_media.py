@@ -26,10 +26,9 @@ from weakref import WeakKeyDictionary
 from django.contrib.staticfiles import finders
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.widgets import Media as MediaCls
-from django.template import Template, TemplateDoesNotExist
-from django.template.loader import get_template
 from django.utils.safestring import SafeData
 
+from django_components.template import load_component_template
 from django_components.util.loader import get_component_dirs, resolve_file
 from django_components.util.logger import logger
 from django_components.util.misc import flatten, get_import_path, get_module_info, is_glob
@@ -240,6 +239,7 @@ class ComponentMediaInput(Protocol):
 class ComponentMedia:
     comp_cls: Type["Component"]
     resolved: bool = False
+    resolved_relative_files: bool = False
     Media: Optional[Type[ComponentMediaInput]] = None
     template: Optional[str] = None
     template_file: Optional[str] = None
@@ -543,9 +543,13 @@ def _resolve_media(comp_cls: Type["Component"], comp_media: ComponentMedia) -> N
             assert isinstance(self.media, MyMedia)
     ```
     """
+    if comp_media.resolved:
+        return
+
+    comp_media.resolved = True
+
     # Do not resolve if this is a base class
-    if get_import_path(comp_cls) == "django_components.component.Component" or comp_media.resolved:
-        comp_media.resolved = True
+    if get_import_path(comp_cls) == "django_components.component.Component":
         return
 
     comp_dirs = get_component_dirs()
@@ -573,8 +577,6 @@ def _resolve_media(comp_cls: Type["Component"], comp_media: ComponentMedia) -> N
     comp_media.css = _get_asset(
         comp_cls, comp_media, inlined_attr="css", file_attr="css_file", comp_dirs=comp_dirs, type="static"
     )
-
-    comp_media.resolved = True
 
 
 def _normalize_media(media: Type[ComponentMediaInput]) -> None:
@@ -736,6 +738,11 @@ def _resolve_component_relative_files(
     as the component class. If so, modify the attributes so the class Django's rendering
     will pick up these files correctly.
     """
+    if comp_media.resolved_relative_files:
+        return
+
+    comp_media.resolved_relative_files = True
+
     # First check if we even need to resolve anything. If the class doesn't define any
     # HTML/JS/CSS files, just skip.
     will_resolve_files = False
@@ -953,27 +960,47 @@ def _get_asset(
     asset_content = getattr(comp_media, inlined_attr, None)
     asset_file = getattr(comp_media, file_attr, None)
 
-    if asset_file is not None:
-        # Check if the file is in one of the components' directories
-        full_path = resolve_file(asset_file, comp_dirs)
+    # No inlined content, nor file name
+    if asset_content is None and asset_file is None:
+        return None
 
-        if full_path is None:
-            # If not, check if it's in the static files
-            if type == "static":
-                full_path = finders.find(asset_file)
-            # Or in the templates
-            elif type == "template":
-                try:
-                    template: Template = get_template(asset_file)
-                    full_path = template.origin.name
-                except TemplateDoesNotExist:
-                    pass
+    if asset_content is not None and asset_file is not None:
+        raise ValueError(
+            f"Received both '{inlined_attr}' and '{file_attr}' in Component {comp_cls.__qualname__}."
+            " Only one of the two must be set."
+        )
 
-        if full_path is None:
-            # NOTE: The short name, e.g. `js` or `css` is used in the error message for convenience
-            raise ValueError(f"Could not find {inlined_attr} file {asset_file}")
+    # If the content was inlined into the component (e.g. `Component.template = "..."`)
+    # then there's nothing to resolve. Return as is.
+    if asset_content is not None:
+        return asset_content
 
-        # NOTE: Use explicit encoding for compat with Windows, see #1074
-        asset_content = Path(full_path).read_text(encoding="utf8")
+    # The rest of the code assumes that we were given only a file name
+    asset_file = cast(str, asset_file)
+
+    if type == "template":
+        # NOTE: While we return on the "source" (plain string) of the template,
+        #       by calling `load_component_template()`, we also cache the Template instance.
+        #       So later in Component's `render_impl()`, we don't have to re-compile the Template.
+        template = load_component_template(comp_cls, asset_file)
+        return template.source
+
+    # For static files, we have a few options:
+    # 1. Check if the file is in one of the components' directories
+    full_path = resolve_file(asset_file, comp_dirs)
+
+    # 2. If not, check if it's in the static files
+    if full_path is None:
+        full_path = finders.find(asset_file)
+
+    if full_path is None:
+        # NOTE: The short name, e.g. `js` or `css` is used in the error message for convenience
+        raise ValueError(f"Could not find {inlined_attr} file {asset_file}")
+
+    # NOTE: Use explicit encoding for compat with Windows, see #1074
+    asset_content = Path(full_path).read_text(encoding="utf8")
+
+    # TODO: Apply `extensions.on_js_preprocess()` and `extensions.on_css_preprocess()`
+    # NOTE: `on_template_preprocess()` is already applied inside `load_component_template()`
 
     return asset_content

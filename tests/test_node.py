@@ -919,11 +919,11 @@ class TestSignatureBasedValidation:
         template3.render(Context({}))
 
         params3, nodelist3, node_id3, contents3 = captured  # type: ignore
-        assert len(params3) == 1
-        assert isinstance(params3[0], TagAttr)
-        assert len(nodelist3) == 0
-        assert contents3 is None
-        assert node_id3 == "a1bc40"
+        assert len(params3) == 1  # type: ignore
+        assert isinstance(params3[0], TagAttr)  # type: ignore
+        assert len(nodelist3) == 0  # type: ignore
+        assert contents3 is None  # type: ignore
+        assert node_id3 == "a1bc40"  # type: ignore
 
         # Cleanup
         TestNodeWithEndTag.unregister(component_tags.register)

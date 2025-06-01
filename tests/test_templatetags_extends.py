@@ -11,21 +11,18 @@ from .testutils import PARAMETRIZE_CONTEXT_BEHAVIOR, setup_test_config
 setup_test_config({"autodiscover": False})
 
 
-class SlottedComponent(Component):
-    template_file = "slotted_template.html"
+def gen_slotted_component():
+    class SlottedComponent(Component):
+        template_file = "slotted_template.html"
+
+    return SlottedComponent
 
 
-class BlockedAndSlottedComponent(Component):
-    template_file = "blocked_and_slotted_template.html"
+def gen_blocked_and_slotted_component():
+    class BlockedAndSlottedComponent(Component):
+        template_file = "blocked_and_slotted_template.html"
 
-
-class RelativeFileComponentUsingTemplateFile(Component):
-    template_file = "relative_extends.html"
-
-
-class RelativeFileComponentUsingGetTemplateName(Component):
-    def get_template_name(self, context):
-        return "relative_extends.html"
+    return BlockedAndSlottedComponent
 
 
 #######################
@@ -37,7 +34,7 @@ class RelativeFileComponentUsingGetTemplateName(Component):
 class TestExtendsCompat:
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_double_extends_on_main_template_and_component_one_component(self, components_settings):
-        registry.register("blocked_and_slotted_component", BlockedAndSlottedComponent)
+        registry.register("blocked_and_slotted_component", gen_blocked_and_slotted_component())
 
         @register("extended_component")
         class _ExtendedComponent(Component):
@@ -82,7 +79,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_double_extends_on_main_template_and_component_two_identical_components(self, components_settings):
-        registry.register("blocked_and_slotted_component", BlockedAndSlottedComponent)
+        registry.register("blocked_and_slotted_component", gen_blocked_and_slotted_component())
 
         @register("extended_component")
         class _ExtendedComponent(Component):
@@ -134,12 +131,11 @@ class TestExtendsCompat:
                 </body>
             </html>
         """
-
         assertHTMLEqual(rendered, expected)
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_double_extends_on_main_template_and_component_two_different_components_same_parent(self, components_settings):  # noqa: E501
-        registry.register("blocked_and_slotted_component", BlockedAndSlottedComponent)
+        registry.register("blocked_and_slotted_component", gen_blocked_and_slotted_component())
 
         @register("extended_component")
         class _ExtendedComponent(Component):
@@ -201,12 +197,11 @@ class TestExtendsCompat:
                 </body>
             </html>
         """
-
         assertHTMLEqual(rendered, expected)
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_double_extends_on_main_template_and_component_two_different_components_different_parent(self, components_settings):  # noqa: E501
-        registry.register("blocked_and_slotted_component", BlockedAndSlottedComponent)
+        registry.register("blocked_and_slotted_component", gen_blocked_and_slotted_component())
 
         @register("extended_component")
         class _ExtendedComponent(Component):
@@ -271,7 +266,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_extends_on_component_one_component(self, components_settings):
-        registry.register("blocked_and_slotted_component", BlockedAndSlottedComponent)
+        registry.register("blocked_and_slotted_component", gen_blocked_and_slotted_component())
 
         @register("extended_component")
         class _ExtendedComponent(Component):
@@ -314,7 +309,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_extends_on_component_two_component(self, components_settings):
-        registry.register("blocked_and_slotted_component", BlockedAndSlottedComponent)
+        registry.register("blocked_and_slotted_component", gen_blocked_and_slotted_component())
 
         @register("extended_component")
         class _ExtendedComponent(Component):
@@ -368,8 +363,8 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_double_extends_on_main_template_and_nested_component(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
-        registry.register("blocked_and_slotted_component", BlockedAndSlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
+        registry.register("blocked_and_slotted_component", gen_blocked_and_slotted_component())
 
         @register("extended_component")
         class _ExtendedComponent(Component):
@@ -425,8 +420,8 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_double_extends_on_main_template_and_nested_component_and_include(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
-        registry.register("blocked_and_slotted_component", BlockedAndSlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
+        registry.register("blocked_and_slotted_component", gen_blocked_and_slotted_component())
 
         @register("extended_component")
         class _ExtendedComponent(Component):
@@ -459,12 +454,25 @@ class TestExtendsCompat:
 
         # second rendering after cache built
         rendered_2 = Template(template).render(Context({"DJC_DEPS_STRATEGY": "ignore"}))
-        expected_2 = expected.replace("data-djc-id-ca1bc3f", "data-djc-id-ca1bc41")
+
+        expected_2 = """
+            <!DOCTYPE html>
+            <html lang="en">
+                <body>
+                    <main role="main">
+                        <div class='container main-container'>
+                            Variable: <strong></strong>
+                            Variable: <strong data-djc-id-ca1bc41></strong>
+                        </div>
+                    </main>
+                </body>
+            </html>
+        """
         assertHTMLEqual(rendered_2, expected_2)
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_slots_inside_extends(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("slot_inside_extends")
         class SlotInsideExtendsComponent(Component):
@@ -497,7 +505,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_slots_inside_include(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("slot_inside_include")
         class SlotInsideIncludeComponent(Component):
@@ -530,7 +538,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_component_inside_block(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
         template: types.django_html = """
             {% extends "block.html" %}
             {% load component_tags %}
@@ -565,7 +573,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_block_inside_component(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         template: types.django_html = """
             {% extends "block_in_component.html" %}
@@ -594,7 +602,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_block_inside_component_parent(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("block_in_component_parent")
         class BlockInCompParent(Component):
@@ -627,7 +635,7 @@ class TestExtendsCompat:
         Assert that when we call a component with `{% component %}`, that
         the `{% block %}` will NOT affect the inner component.
         """
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("block_inside_slot_v1")
         class BlockInSlotInComponent(Component):
@@ -662,7 +670,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_slot_inside_block__slot_default_block_default(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("slot_inside_block")
         class _SlotInsideBlockComponent(Component):
@@ -695,7 +703,7 @@ class TestExtendsCompat:
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_slot_inside_block__slot_default_block_override(self, components_settings):
         registry.clear()
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("slot_inside_block")
         class _SlotInsideBlockComponent(Component):
@@ -730,7 +738,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_slot_inside_block__slot_overriden_block_default(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("slot_inside_block")
         class _SlotInsideBlockComponent(Component):
@@ -766,7 +774,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_slot_inside_block__slot_overriden_block_overriden(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("slot_inside_block")
         class _SlotInsideBlockComponent(Component):
@@ -812,7 +820,7 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_inject_inside_block(self, components_settings):
-        registry.register("slotted_component", SlottedComponent)
+        registry.register("slotted_component", gen_slotted_component())
 
         @register("injectee")
         class InjectComponent(Component):
@@ -851,7 +859,9 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_component_using_template_file_extends_relative_file(self, components_settings):
-        registry.register("relative_file_component_using_template_file", RelativeFileComponentUsingTemplateFile)
+        @register("relative_file_component_using_template_file")
+        class RelativeFileComponentUsingTemplateFile(Component):
+            template_file = "relative_extends.html"
 
         template: types.django_html = """
             {% load component_tags %}
@@ -874,7 +884,10 @@ class TestExtendsCompat:
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_component_using_get_template_name_extends_relative_file(self, components_settings):
-        registry.register("relative_file_component_using_get_template_name", RelativeFileComponentUsingGetTemplateName)
+        @register("relative_file_component_using_get_template_name")
+        class RelativeFileComponentUsingGetTemplateName(Component):
+            def get_template_name(self, context):
+                return "relative_extends.html"
 
         template: types.django_html = """
             {% load component_tags %}

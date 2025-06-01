@@ -10,7 +10,7 @@ from django.template.loaders.filesystem import Loader as FilesystemLoader
 from django_components.util.loader import get_component_dirs
 
 
-class Loader(FilesystemLoader):
+class DjcLoader(FilesystemLoader):
     def get_dirs(self, include_apps: bool = True) -> List[Path]:
         """
         Prepare directories that may contain component files:
@@ -26,3 +26,10 @@ class Loader(FilesystemLoader):
         `BASE_DIR` setting is required.
         """
         return get_component_dirs(include_apps)
+
+
+# NOTE: Django's template loaders have the pattern of using the `Loader` class name.
+#       However, this then makes it harder to track and distinguish between different loaders.
+#       So internally we use the name `DjcLoader` instead.
+#       But for public API we use the name `Loader` to match Django.
+Loader = DjcLoader
