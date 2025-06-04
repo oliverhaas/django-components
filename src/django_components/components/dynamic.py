@@ -110,7 +110,7 @@ class DynamicComponent(Component):
     ) -> str:
         # Make a copy of kwargs so we pass to the child only the kwargs that are
         # actually used by the child component.
-        cleared_kwargs = self.input.kwargs.copy()
+        cleared_kwargs = self.raw_kwargs.copy()
 
         registry: Optional[ComponentRegistry] = cleared_kwargs.pop("registry", None)
         comp_name_or_class: Union[str, Type[Component]] = cleared_kwargs.pop("is", None)
@@ -121,11 +121,11 @@ class DynamicComponent(Component):
         comp_class = self._resolve_component(comp_name_or_class, registry)
 
         output = comp_class.render(
-            context=self.input.context,
-            args=self.input.args,
+            context=self.context,
+            args=self.raw_args,
             kwargs=cleared_kwargs,
-            slots=self.input.slots,
-            deps_strategy=self.input.deps_strategy,
+            slots=self.raw_slots,
+            deps_strategy=self.deps_strategy,
             registered_name=self.registered_name,
             outer_context=self.outer_context,
             registry=self.registry,

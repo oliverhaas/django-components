@@ -586,6 +586,37 @@ Summary:
     )
     ```
 
+- `Component.input` (and its type `ComponentInput`) is now deprecated. The `input` property will be removed in v1.
+
+    Instead, use attributes directly on the Component instance.
+
+    Before:
+
+    ```py
+    class MyComponent(Component):
+        def on_render(self, context, template):
+            assert self.input.args == [1, 2, 3]
+            assert self.input.kwargs == {"a": 1, "b": 2}
+            assert self.input.slots == {"my_slot": "CONTENT"}
+            assert self.input.context == {"my_slot": "CONTENT"}
+            assert self.input.deps_strategy == "document"
+            assert self.input.type == "document"
+            assert self.input.render_dependencies == True
+    ```
+
+    After:
+
+    ```py
+    class MyComponent(Component):
+        def on_render(self, context, template):
+            assert self.args == [1, 2, 3]
+            assert self.kwargs == {"a": 1, "b": 2}
+            assert self.slots == {"my_slot": "CONTENT"}
+            assert self.context == {"my_slot": "CONTENT"}
+            assert self.deps_strategy == "document"
+            assert (self.deps_strategy != "ignore") is True
+    ```
+
 - Component method `on_render_after` was updated to receive also `error` field.
 
     For backwards compatibility, the `error` field can be omitted until v1.
@@ -975,6 +1006,22 @@ Summary:
 
     Same as with the parameters in `Component.get_template_data()`, they will be instances of the `Args`, `Kwargs`, `Slots` classes
     if defined, or plain lists / dictionaries otherwise.
+
+- 4 attributes that were previously available only under the `Component.input` attribute
+    are now available directly on the Component instance:
+
+    - `Component.raw_args`
+    - `Component.raw_kwargs`
+    - `Component.raw_slots`
+    - `Component.deps_strategy`
+
+    The first 3 attributes are the same as the deprecated `Component.input.args`, `Component.input.kwargs`, `Component.input.slots` properties.
+
+    Compared to the `Component.args` / `Component.kwargs` / `Component.slots` attributes,
+    these "raw" attributes are not typed and will remain as plain lists / dictionaries
+    even if you define the `Args`, `Kwargs`, `Slots` classes.
+
+    The `Component.deps_strategy` attribute is the same as the deprecated `Component.input.deps_strategy` property.
 
 - New template variables `{{ component_vars.args }}`, `{{ component_vars.kwargs }}`, `{{ component_vars.slots }}`
 
