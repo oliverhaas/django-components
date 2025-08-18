@@ -26,8 +26,7 @@ validation:
 
 theme:
   name: "material"
-  # Uncomment to extend / override files from the theme
-  # custom_dir: docs/overrides
+  custom_dir: docs/overrides
   features:
     - content.action.edit
     - content.action.view
@@ -124,6 +123,7 @@ plugins:
       scripts:
         - docs/scripts/setup.py
         - docs/scripts/reference.py
+        - docs/scripts/gen_release_notes.py
   - awesome-nav
   - git-revision-date-localized:
       enabled: !ENV [CI, false]
