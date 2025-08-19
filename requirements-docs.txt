@@ -152,7 +152,7 @@ mkdocstrings==0.30.0
     # via
     #   hatch.envs.docs
     #   mkdocstrings-python
-mkdocstrings-python==1.16.12
+mkdocstrings-python==1.17.0
     # via hatch.envs.docs
 mypy-extensions==1.1.0
     # via black
