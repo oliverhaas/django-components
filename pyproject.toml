@@ -44,6 +44,10 @@ Issues = "https://github.com/django-components/django-components/issues"
 Donate = "https://github.com/sponsors/EmilStenstrom"
 
 
+###########################################
+# TOOLS
+###########################################
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["django_components*"]
@@ -143,35 +147,34 @@ ignore = [
     "N818",  # Exception name `NotRegistered` should be named with an Error suffix
 ]
 
-[tool.ruff.lint.isort]
-known-first-party = ["django_components"]
-
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
     "ARG002",  # Unused method argument: `components_settings`
-    "ANN",  # Annotations are not needed for tests
-    "N806",  # Variable `SimpleComponent` in function should be lowercase
-    "PLC0415",  # `import` should be at the top-level of a file
+    "ANN",     # Annotations are not needed for tests
+    "N806",    # Variable `SimpleComponent` in function should be lowercase
+    "PLC0415", # `import` should be at the top-level of a file
     "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
-    "S101",  # Use of `assert` detected
+    "S101",    # Use of `assert` detected
     "TRY002",  # Create your own exception
 ]
 "benchmarks/*" = [
     "ARG002",  # Unused method argument: `components_settings`
-    "ANN",  # Annotations are not needed for tests
-    "N806",  # Variable `SimpleComponent` in function should be lowercase
-    "PLC0415",  # `import` should be at the top-level of a file
+    "ANN",     # Annotations are not needed for tests
+    "N806",    # Variable `SimpleComponent` in function should be lowercase
+    "PLC0415", # `import` should be at the top-level of a file
     "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
-    "S101",  # Use of `assert` detected
+    "S101",    # Use of `assert` detected
     "TRY002",  # Create your own exception
 ]
 "sampleproject/*" = [
-    "ARG002",  # Unused method argument
-    "ANN",  # Annotations are not needed for tests
-    "T201",  # `print` found
-    "DTZ",  # `datetime` found
+    "ARG002", # Unused method argument
+    "ANN",    # Annotations are not needed for tests
+    "T201",   # `print` found
+    "DTZ",    # `datetime` found
 ]
 
+[tool.ruff.lint.isort]
+known-first-party = ["django_components"]
 
 [tool.mypy]
 check_untyped_defs = true
@@ -191,36 +194,3 @@ testpaths = [
     "tests",
 ]
 asyncio_mode = "auto"
-
-[tool.hatch.env]
-requires = [
-    "hatch-mkdocs",
-    "hatch-pip-compile",
-]
-
-[tool.hatch.envs.default]
-dependencies = [
-    "django",
-    "djc-core-html-parser",
-    "tox",
-    "pytest",
-    "ruff",
-    "pre-commit",
-    "mypy",
-]
-type = "pip-compile"
-lock-filename = "requirements-dev.txt"
-
-[tool.hatch.envs.docs]
-type = "pip-compile"
-lock-filename = "requirements-docs.txt"
-detached = false
-# Dependencies are fetched automatically from the mkdocs.yml file with hatch-mkdocs
-dependencies = [
-    "pygments",
-    "pygments-djc",
-    "mkdocs-awesome-nav",
-]
-
-[tool.hatch.env.collectors.mkdocs.docs]
-path = "mkdocs.yml"
