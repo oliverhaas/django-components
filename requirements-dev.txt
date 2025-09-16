@@ -6,7 +6,7 @@
 #
 asgiref==3.9.1
     # via django
-asv==0.6.4
+asv==0.6.5
     # via -r requirements-dev.in
 asv-runner==0.2.1
     # via asv
@@ -50,6 +50,7 @@ idna==3.10
     # via requests
 importlib-metadata==8.7.0
     # via
+    #   asv
     #   asv-runner
     #   build
 iniconfig==2.1.0
@@ -64,6 +65,7 @@ nodeenv==1.9.1
     # via pre-commit
 packaging==25.0
     # via
+    #   asv
     #   build
     #   pyproject-api
     #   pytest

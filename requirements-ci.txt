@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements-ci.in
 #
-asv==0.6.4
+asv==0.6.5
     # via -r requirements-ci.in
 asv-runner==0.2.1
     # via asv
@@ -34,6 +34,7 @@ idna==3.10
     # via requests
 importlib-metadata==8.5.0
     # via
+    #   asv
     #   asv-runner
     #   build
 iniconfig==2.0.0
@@ -42,6 +43,7 @@ json5==0.10.0
     # via asv
 packaging==24.2
     # via
+    #   asv
     #   build
     #   pyproject-api
     #   pytest
