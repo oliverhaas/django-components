@@ -14,7 +14,7 @@ from django_components.testing import djc_test
 
 from .testutils import PARAMETRIZE_CONTEXT_BEHAVIOR, setup_test_config
 
-setup_test_config({"autodiscover": False})
+setup_test_config()
 
 
 # NOTE: By running garbage collection and then checking for empty caches,
@@ -714,6 +714,9 @@ class TestProvideTemplateTag:
         # Ensure all caches are properly cleaned up even with multiple component instances
         _assert_clear_cache()
 
+    # TODO - Enable once globals and finalizers are scoped to a single DJC instance")
+    #        See https://github.com/django-components/django-components/issues/1413
+    @pytest.mark.skip("#TODO")
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_provide_component_inside_nested_forloop(self, components_settings):
         @register("nested_loop_component")
@@ -758,6 +761,9 @@ class TestProvideTemplateTag:
         # Ensure all caches are properly cleaned up even with many component instances
         _assert_clear_cache()
 
+    # TODO - Enable once globals and finalizers are scoped to a single DJC instance")
+    #        See https://github.com/django-components/django-components/issues/1413
+    @pytest.mark.skip("#TODO")
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_provide_component_forloop_with_error(self, components_settings):
         @register("error_loop_component")

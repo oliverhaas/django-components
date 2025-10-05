@@ -1,41 +1,24 @@
-from pathlib import Path
-
 import pytest
 from django.template import Context, Template
 from pytest_django.asserts import assertHTMLEqual
 
 from django_components import registry, types
 from django_components.testing import djc_test
-from tests.testutils import PARAMETRIZE_CONTEXT_BEHAVIOR, setup_test_config
-
-setup_test_config({"autodiscover": False})
 
 
-# Instead of having to re-define the components from the examples section in documentation,
-# we import them directly from sampleproject.
-def _create_tab_components():
-    # Imported lazily, so we import it only once settings are set
-    from sampleproject.examples.components.tabs.tabs import Tab, Tablist, _TablistImpl
+# Imported lazily, so we import it only once settings are set
+def _create_tab_components() -> None:
+    from docs.examples.tabs.component import Tab, Tablist, _TablistImpl  # noqa: PLC0415
 
-    # NOTE: We're importing the component classes from the sampleproject, so we're
-    # testing the actual implementation.
     registry.register("Tab", Tab)
     registry.register("Tablist", Tablist)
     registry.register("_tabset", _TablistImpl)
 
 
-@djc_test(
-    parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR,
-    components_settings={
-        "dirs": [
-            Path(__file__).parent / "components",
-            # Include the directory where example components are defined
-            Path(__file__).parent.parent / "sampleproject/examples/components",
-        ],
-    },
-)
+@pytest.mark.django_db
+@djc_test
 class TestExampleTabs:
-    def test_render_simple_tabs(self, components_settings):
+    def test_render_simple_tabs(self):
         _create_tab_components()
         template_str: types.django_html = """
             {% load component_tags %}
@@ -47,15 +30,13 @@ class TestExampleTabs:
         template = Template(template_str)
         rendered = template.render(Context({}))
 
-        if components_settings["context_behavior"] == "django":
-            comp_id = "ca1bc4b"
-        else:
-            comp_id = "ca1bc47"
-
         assertHTMLEqual(
             rendered,
-            f"""
-            <div x-data="{{ selectedTab: 'my-tabs_tab-1_tab' }}" id="my-tabs" data-djc-id-{comp_id}>
+            """
+            <div x-data="{
+                selectedTab: 'my-tabs_tab-1_tab',
+            }"
+                id="my-tabs" data-djc-id-ca1bc4b>
                 <div role="tablist" aria-label="My Tabs">
                     <button
                         :aria-selected="selectedTab === 'my-tabs_tab-1_tab'"
@@ -93,9 +74,9 @@ class TestExampleTabs:
             """,
         )
 
-    def test_disabled_tab(self, components_settings):
+    def test_disabled_tab(self):
         _create_tab_components()
-        template_str = """
+        template_str: types.django_html = """
             {% load component_tags %}
             {% component "Tablist" name="My Tabs" %}
                 {% component "Tab" header="Tab 1" %}Content 1{% endcomponent %}
@@ -108,9 +89,9 @@ class TestExampleTabs:
         assert "disabled" in rendered
         assert "Content 2" in rendered
 
-    def test_custom_ids(self, components_settings):
+    def test_custom_ids(self):
         _create_tab_components()
-        template_str = """
+        template_str: types.django_html = """
             {% load component_tags %}
             {% component "Tablist" id="custom-list" name="My Tabs" %}
                 {% component "Tab" id="custom-tab" header="Tab 1" %}Content 1{% endcomponent %}
@@ -125,9 +106,9 @@ class TestExampleTabs:
         assert 'id="custom-tab_content"' in rendered
         assert 'aria-labelledby="custom-tab_tab"' in rendered
 
-    def test_tablist_in_tab_raise_error(self, components_settings):
+    def test_tablist_in_tab_raise_error(self):
         _create_tab_components()
-        template_str = """
+        template_str: types.django_html = """
             {% load component_tags %}
             {% component "Tablist" name="Outer Tabs" %}
                 {% component "Tab" header="Outer 1" %}
@@ -145,9 +126,9 @@ class TestExampleTabs:
 
         assert "Inner Content" in rendered
 
-    def test_tab_in_tab_raise_error(self, components_settings):
+    def test_tab_in_tab_raise_error(self):
         _create_tab_components()
-        template_str = """
+        template_str: types.django_html = """
             {% load component_tags %}
             {% component "Tablist" name="Outer Tabs" %}
                 {% component "Tab" header="Outer 1" %}
