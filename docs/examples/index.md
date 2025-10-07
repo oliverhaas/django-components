@@ -7,9 +7,18 @@ Here you will find public examples of components and component libraries.
 
 If you have components that would be useful to others, open a [pull request](https://github.com/django-components/django-components/pulls) to add them to this collection.
 
+## Scenarios
+
+- [Form Submission](./form_submission) - Handle the entire form submission flow in a single file and without Django's Form class.
+- [HTML fragments](./fragments) - Load HTML fragments using different client-side techniques: vanilla JavaScript, AlpineJS, and HTMX.
+- [Error handling](./error_fallback) - A component that catches errors and displays fallback content, similar to React's ErrorBoundary.
+- [Recursion](./recursion) - 100 nested components? Not a problem! Handle recursive rendering out of the box.
+- [A/B Testing](./ab_testing) - Dynamically render different component versions. Use for A/B testing, phased rollouts, etc.
+- [Analytics](./analytics) - Track component errors or success rates to send them to Sentry or other services.
+
 ## Components
 
-- [Form](./form) - A form component that automatically generates labels and arranges fields in a grid.
+- [FormGrid](./form_grid) - A form component that automatically generates labels and arranges fields in a grid.
 - [Tabs (AlpineJS)](./tabs) - Dynamic tabs with [AlpineJS](https://alpinejs.dev/).
 
 ## Packages
