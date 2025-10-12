@@ -8,7 +8,7 @@ from django.test import Client
 from django.urls import path
 from pytest_django.asserts import assertInHTML
 
-from django_components import Component, ComponentView, get_component_url, register, types
+from django_components import Component, get_component_url, register, types
 from django_components.testing import djc_test
 from django_components.urls import urlpatterns as dc_urlpatterns
 from django_components.util.misc import format_url
@@ -96,9 +96,9 @@ class TestComponentAsView:
             def get_template_data(self, args, kwargs, slots, context):
                 return {"inner_var": kwargs["variable"]}
 
-            class View(ComponentView):
+            class View:
                 def get(self, request, *args, **kwargs) -> HttpResponse:
-                    return self.component.render_to_response(kwargs={"variable": "GET"})
+                    return self.component_cls.render_to_response(kwargs={"variable": "GET"})  # type: ignore[attr-defined]
 
         client = CustomClient(urlpatterns=[path("test/", MockComponentRequest.as_view())])
         response = client.get("/test/")
@@ -145,10 +145,10 @@ class TestComponentAsView:
             def get_template_data(self, args, kwargs, slots, context):
                 return {"inner_var": kwargs["variable"]}
 
-            class View(ComponentView):
+            class View:
                 def post(self, request, *args, **kwargs) -> HttpResponse:
                     variable = request.POST.get("variable")
-                    return self.component.render_to_response(kwargs={"variable": variable})
+                    return self.component_cls.render_to_response(kwargs={"variable": variable})  # type: ignore[attr-defined]
 
         client = CustomClient(urlpatterns=[path("test/", MockComponentRequest.as_view())])
         response = client.post("/test/", {"variable": "POST"})
@@ -366,7 +366,20 @@ class TestComponentAsView:
         assert response.content == b"Hello"
         assert did_call_get
 
-    def test_non_public_url(self):
+    def test_public_url_implicit(self):
+        class TestComponent(Component):
+            template = "Hello"
+
+            class View:
+                def get(self, request: HttpRequest, **kwargs: Any):
+                    component: Component = self.component  # type: ignore[attr-defined]
+                    return component.render_to_response()
+
+        # Check if the URL is correctly generated
+        component_url = get_component_url(TestComponent)
+        assert component_url == f"/components/ext/view/components/{TestComponent.class_id}/"
+
+    def test_public_url_disabled(self):
         did_call_get = False
 
         class TestComponent(Component):
