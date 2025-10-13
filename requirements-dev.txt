@@ -162,7 +162,7 @@ urllib3==2.5.0
     # via
     #   requests
     #   types-requests
-virtualenv==20.34.0
+virtualenv==20.35.3
     # via
     #   -r requirements-dev.in
     #   asv
