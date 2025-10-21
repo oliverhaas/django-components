@@ -1,5 +1,60 @@
 # Release notes
 
+## v0.142.4
+
+#### Refactor
+
+- Simpler syntax for defining component inputs.
+
+    When defining `Args`, `Kwargs`, `Slots`, `JsData`, `CssData`, `TemplateData`, these data classes now don't have to subclass any other class.
+    
+    If they are not subclassing (nor `@dataclass`), these data classes will be automatically converted to `NamedTuples`:
+
+    Before - the `Args`, `Kwargs`, and `Slots` (etc..) had to be NamedTuples, dataclasses, or Pydantic models:
+
+    ```py
+    from typing import NamedTuple
+    from django_components import Component
+
+    class Button(Component):
+        class Args(NamedTuple):
+            size: int
+            text: str
+
+        class Kwargs(NamedTuple):
+            variable: str
+            maybe_var: Optional[int] = None
+
+        class Slots(NamedTuple):
+            my_slot: Optional[SlotInput] = None
+
+        def get_template_data(self, args: Args, kwargs: Kwargs, slots: Slots, context: Context):
+            ...
+    ```
+
+    Now these classes are automatically converted to `NamedTuples` if they don't subclass anything else:
+
+    ```py
+    class Button(Component):
+        class Args:  # Same as `Args(NamedTuple)`
+            size: int
+            text: str
+
+        class Kwargs:  # Same as `Kwargs(NamedTuple)`
+            variable: str
+            maybe_var: Optional[int] = None
+
+        class Slots:  # Same as `Slots(NamedTuple)`
+            my_slot: Optional[SlotInput] = None
+
+        def get_template_data(self, args: Args, kwargs: Kwargs, slots: Slots, context: Context):
+            ...
+    ```
+
+- Extension authors: The `ExtensionComponentConfig` can be instantiated with `None` instead of a component instance.
+
+  This allows to call component-level extension methods outside of the normal rendering lifecycle.
+
 ## v0.142.3
 
 #### Fix
