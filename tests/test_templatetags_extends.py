@@ -1,5 +1,6 @@
 """Catch-all for tests that use template tags and don't fit other files"""
 
+import pytest
 from django.template import Context, Template
 from pytest_django.asserts import assertHTMLEqual
 
@@ -947,6 +948,7 @@ class TestExtendsCompat:
         assertHTMLEqual(rendered, expected)
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="REMOVED: Provide/Inject system")
     def test_inject_inside_block(self, components_settings):
         registry.register("slotted_component", gen_slotted_component())
 

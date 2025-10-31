@@ -1412,6 +1412,7 @@ class TestComponentRender:
         )
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="REMOVED: Provide/Inject system")
     def test_prepends_exceptions_with_component_path(self, components_settings):
         @register("broken")
         class Broken(Component):

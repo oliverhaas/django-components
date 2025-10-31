@@ -53,7 +53,8 @@ from django_components.extension import (
 )
 from django_components.library import TagProtectedError
 from django_components.node import BaseNode, template_tag
-from django_components.provide import ProvideNode
+# REMOVED: Provide/Inject system
+# from django_components.provide import ProvideNode
 from django_components.slots import (
     FillNode,
     Slot,
@@ -123,7 +124,7 @@ __all__ = [
     "OnSlotRenderedContext",
     "OnTemplateCompiledContext",
     "OnTemplateLoadedContext",
-    "ProvideNode",
+    # REMOVED: "ProvideNode",
     "RegistrySettings",
     "ShorthandComponentFormatter",
     "Slot",

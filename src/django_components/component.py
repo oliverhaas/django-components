@@ -60,7 +60,13 @@ from django_components.perfutil.component import (
     component_post_render,
 )
 from django_components.perfutil.provide import register_provide_reference, unlink_component_from_provide_on_gc
-from django_components.provide import get_injected_context_var
+# REMOVED: Provide/Inject system
+# from django_components.provide import get_injected_context_var
+
+# Stub for removed provide/inject
+def get_injected_context_var(comp_id, comp_name, key, default=None):
+    return default
+
 from django_components.slots import (
     Slot,
     SlotIsFilled,

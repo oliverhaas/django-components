@@ -3,7 +3,8 @@ import django.template
 from django_components.attributes import HtmlAttrsNode
 from django_components.component import ComponentNode
 from django_components.dependencies import ComponentCssDependenciesNode, ComponentJsDependenciesNode
-from django_components.provide import ProvideNode
+# REMOVED: Provide/Inject system
+# from django_components.provide import ProvideNode
 from django_components.slots import FillNode, SlotNode
 
 # NOTE: Variable name `register` is required by Django to recognize this as a template tag library
@@ -24,7 +25,7 @@ ComponentCssDependenciesNode.register(register)
 ComponentJsDependenciesNode.register(register)
 FillNode.register(register)
 HtmlAttrsNode.register(register)
-ProvideNode.register(register)
+# REMOVED: ProvideNode.register(register)
 SlotNode.register(register)
 
 
@@ -36,7 +37,7 @@ component_css_dependencies = ComponentCssDependenciesNode.parse
 component_js_dependencies = ComponentJsDependenciesNode.parse
 fill = FillNode.parse
 html_attrs = HtmlAttrsNode.parse
-provide = ProvideNode.parse
+# REMOVED: provide = ProvideNode.parse
 slot = SlotNode.parse
 
 
@@ -46,6 +47,6 @@ __all__ = [
     "component_js_dependencies",
     "fill",
     "html_attrs",
-    "provide",
+    # REMOVED: "provide",
     "slot",
 ]
