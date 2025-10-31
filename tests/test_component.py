@@ -108,11 +108,7 @@ class TestComponentLegacyApi:
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_component_instantiation(self, components_settings):
         class SimpleComponent(Component):
-            template = """
-                <div>
-                    Name: {{ name }}
-                </div>
-            """
+            template_file = "test_component/component-instantiation.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return {
@@ -477,7 +473,7 @@ class TestComponent:
 
     def test_get_context_data_returns_none(self):
         class SimpleComponent(Component):
-            template = "Hello"
+            template_file = "test_component/get-context-data-returns-none.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return None
@@ -489,7 +485,7 @@ class TestComponent:
 class TestComponentRenderAPI:
     def test_component_render_id(self):
         class SimpleComponent(Component):
-            template = "render_id: {{ render_id }}"
+            template_file = "test_component/component-render-id.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return {"render_id": self.id}
@@ -542,7 +538,7 @@ class TestComponentRenderAPI:
         called = False
 
         class TestComponent(Component):
-            template = ""
+            template_file = "test_component/args-kwargs-slots--simple.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 nonlocal called
@@ -566,7 +562,7 @@ class TestComponentRenderAPI:
         called = False
 
         class TestComponent(Component):
-            template = ""
+            template_file = "test_component/args-kwargs-slots--typed.html"
 
             class Args:
                 variable: int
