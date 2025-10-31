@@ -1,5 +1,5 @@
-# NOTE: Components exported here are documented in the API reference
-from django_components.components.dynamic import DynamicComponent
-from django_components.components.error_fallback import ErrorFallback
+# REMOVED: Built-in components (DynamicComponent, ErrorFallback)
+# from django_components.components.dynamic import DynamicComponent
+# from django_components.components.error_fallback import ErrorFallback
 
-__all__ = ["DynamicComponent", "ErrorFallback"]
+__all__ = []  # No built-in components anymore

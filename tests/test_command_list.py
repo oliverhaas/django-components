@@ -46,15 +46,16 @@ class TestComponentListCommand:
             r"full_name\s+path\s+",
         ).search(output.strip().split("\n")[0])
 
-        # Check that the output contains the built-in component
-        assert re.compile(
-            # django_components.components.dynamic.DynamicComponent   src/django_components/components/dynamic.py
-            # or
-            # django_components.components.dynamic.DynamicComponent   .tox/py311/lib/python3.11/site-packages/django_components/components/dynamic.py
-            r"django_components\.components\.dynamic\.DynamicComponent\s+[\w/\\.-]+django_components{SLASH}components{SLASH}dynamic\.py".format(  # noqa: UP032
-                SLASH=SLASH,
-            ),
-        ).search(output)
+        # REMOVED: Built-in component check (DynamicComponent removed)
+        # # Check that the output contains the built-in component
+        # assert re.compile(
+        #     # django_components.components.dynamic.DynamicComponent   src/django_components/components/dynamic.py
+        #     # or
+        #     # django_components.components.dynamic.DynamicComponent   .tox/py311/lib/python3.11/site-packages/django_components/components/dynamic.py
+        #     r"django_components\.components\.dynamic\.DynamicComponent\s+[\w/\\.-]+django_components{SLASH}components{SLASH}dynamic\.py".format(  # noqa: UP032
+        #         SLASH=SLASH,
+        #     ),
+        # ).search(output)
 
         # Check that the output contains the test component
         assert re.compile(
@@ -91,15 +92,16 @@ class TestComponentListCommand:
             r"name\s+full_name\s+path\s+",
         ).search(output.strip().split("\n")[0])
 
-        # Check that the output contains the built-in component
-        assert re.compile(
-            # DynamicComponent  django_components.components.dynamic.DynamicComponent   src/django_components/components/dynamic.py
-            # or
-            # DynamicComponent  django_components.components.dynamic.DynamicComponent   .tox/py311/lib/python3.11/site-packages/django_components/components/dynamic.py
-            r"DynamicComponent\s+django_components\.components\.dynamic\.DynamicComponent\s+[\w/\\.-]+django_components{SLASH}components{SLASH}dynamic\.py".format(  # noqa: UP032
-                SLASH=SLASH,
-            ),
-        ).search(output)
+        # REMOVED: Built-in component check (DynamicComponent removed)
+        # # Check that the output contains the built-in component
+        # assert re.compile(
+        #     # DynamicComponent  django_components.components.dynamic.DynamicComponent   src/django_components/components/dynamic.py
+        #     # or
+        #     # DynamicComponent  django_components.components.dynamic.DynamicComponent   .tox/py311/lib/python3.11/site-packages/django_components/components/dynamic.py
+        #     r"DynamicComponent\s+django_components\.components\.dynamic\.DynamicComponent\s+[\w/\\.-]+django_components{SLASH}components{SLASH}dynamic\.py".format(  # noqa: UP032
+        #         SLASH=SLASH,
+        #     ),
+        # ).search(output)
 
         # Check that the output contains the test component
         assert re.compile(
@@ -136,11 +138,12 @@ class TestComponentListCommand:
             r"name\s+full_name",
         ).search(output.strip().split("\n")[0])
 
-        # Check that the output contains the built-in component
-        assert re.compile(
-            # DynamicComponent  django_components.components.dynamic.DynamicComponent
-            r"DynamicComponent\s+django_components\.components\.dynamic\.DynamicComponent",
-        ).search(output)
+        # REMOVED: Built-in component check (DynamicComponent removed)
+        # # Check that the output contains the built-in component
+        # assert re.compile(
+        #     # DynamicComponent  django_components.components.dynamic.DynamicComponent
+        #     r"DynamicComponent\s+django_components\.components\.dynamic\.DynamicComponent",
+        # ).search(output)
 
         # Check that the output contains the test component
         assert re.compile(
@@ -176,15 +179,16 @@ class TestComponentListCommand:
             is None
         )
 
-        # Check that the output contains the built-in component
-        assert re.compile(
-            # django_components.components.dynamic.DynamicComponent   src/django_components/components/dynamic.py
-            # or
-            # django_components.components.dynamic.DynamicComponent   .tox/py311/lib/python3.11/site-packages/django_components/components/dynamic.py
-            r"django_components\.components\.dynamic\.DynamicComponent\s+[\w/\\.-]+django_components{SLASH}components{SLASH}dynamic\.py".format(  # noqa: UP032
-                SLASH=SLASH,
-            ),
-        ).search(output)
+        # REMOVED: Built-in component check (DynamicComponent removed)
+        # # Check that the output contains the built-in component
+        # assert re.compile(
+        #     # django_components.components.dynamic.DynamicComponent   src/django_components/components/dynamic.py
+        #     # or
+        #     # django_components.components.dynamic.DynamicComponent   .tox/py311/lib/python3.11/site-packages/django_components/components/dynamic.py
+        #     r"django_components\.components\.dynamic\.DynamicComponent\s+[\w/\\.-]+django_components{SLASH}components{SLASH}dynamic\.py".format(  # noqa: UP032
+        #         SLASH=SLASH,
+        #     ),
+        # ).search(output)
 
         # Check that the output contains the test component
         assert re.compile(
