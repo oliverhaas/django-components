@@ -333,35 +333,6 @@ class TestHtmlAttrs:
         ):
             template.render(Context({"class_var": "padding-top-8"}))
 
-    @pytest.mark.skip(reason="REMOVED: Dynamic template expressions")
-    def test_tag_raises_on_aggregate_and_positional_args_for_defaults(self):
-        @register("test")
-        class AttrsComponent(Component):
-            template: types.django_html = """
-                {% load component_tags %}
-                <div {% html_attrs
-                    defaults=defaults
-                    attrs:class="from_agg_key"
-                    defaults:class="override-me"
-                    class="added_class"
-                    class="another-class"
-                    data-id=123
-                %}>
-                    content
-                </div>
-            """
-
-            def get_template_data(self, args, kwargs, slots, context):
-                return {"attrs": kwargs["attrs"]}
-
-        template = Template(self.template_str)
-
-        with pytest.raises(
-            TemplateSyntaxError,
-            match=re.escape("Received argument 'defaults' both as a regular input"),
-        ):
-            template.render(Context({"class_var": "padding-top-8"}))
-
     def test_tag_no_attrs(self):
         @register("test")
         class AttrsComponent(Component):

@@ -231,28 +231,6 @@ class TestComponentLegacyApi:
         )
 
     # TODO_v1 - Remove
-    @pytest.mark.skip(reason="REMOVED: Template caching")
-    def test_get_template_is_cached(self):
-        class SimpleComponent(Component):
-            def get_template(self, context):
-                content: types.django_html = """
-                    Variable: <strong>{{ variable }}</strong>
-                """
-                return content
-
-            def get_template_data(self, args, kwargs, slots, context):
-                return {
-                    "variable": kwargs.get("variable", None),
-                }
-
-        comp = SimpleComponent()
-        template_1 = _get_component_template(comp)
-        template_1._test_id = "123"  # type: ignore[union-attr]
-
-        template_2 = _get_component_template(comp)
-        assert template_2._test_id == "123"  # type: ignore[union-attr]
-
-    # TODO_v1 - Remove
     def test_input(self):
         class TestComponent(Component):
             template: types.django_html = """
@@ -1224,109 +1202,6 @@ class TestComponentRender:
             """,
         )
 
-    # See https://github.com/django-components/django-components/issues/580
-    # And https://github.com/django-components/django-components/issues/634
-    @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
-    @pytest.mark.skip(reason="REMOVED: Component.View extension")
-    def test_request_context_is_populated_from_context_processors(self, components_settings):
-        @register("thing")
-        class Thing(Component):
-            template: types.django_html = """
-                <kbd>Rendered {{ how }}</kbd>
-                <div>
-                    CSRF token: {{ csrf_token|default:"<em>No CSRF token</em>" }}
-                </div>
-            """
-
-            def get_template_data(self, args, kwargs, slots, context):
-                return {"how": kwargs.pop("how")}
-
-            class View:
-                def get(self, request):
-                    how = "via GET request"
-
-                    return self.component_cls.render_to_response(  # type: ignore[attr-defined]
-                        context=RequestContext(request),
-                        kwargs={"how": how},
-                    )
-
-        client = CustomClient(urlpatterns=[path("test_thing/", Thing.as_view())])
-        response = client.get("/test_thing/")
-
-        assert response.status_code == 200
-
-        # Full response:
-        # """
-        # <kbd>
-        #     Rendered via GET request
-        # </kbd>
-        # <div>
-        #     CSRF token:
-        #     <div>
-        #         test_csrf_token
-        #     </div>
-        # </div>
-        # """
-        assertInHTML(
-            """
-            <kbd data-djc-id-ca1bc3f>
-                Rendered via GET request
-            </kbd>
-            """,
-            response.content.decode(),
-        )
-
-        token_re = re.compile(rb"CSRF token:\s+predictabletoken")
-        token = token_re.findall(response.content)[0]
-
-        assert token == b"CSRF token: predictabletoken"
-
-    @pytest.mark.skip(reason="REMOVED: Component.View extension")
-    def test_request_context_created_when_no_context(self):
-        @register("thing")
-        class Thing(Component):
-            template: types.django_html = """
-                CSRF token: {{ csrf_token|default:"<em>No CSRF token</em>" }}
-            """
-
-            class View:
-                def get(self, request):
-                    return Thing.render_to_response(request=request)
-
-        client = CustomClient(urlpatterns=[path("test_thing/", Thing.as_view())])
-        response = client.get("/test_thing/")
-
-        assert response.status_code == 200
-
-        token_re = re.compile(rb"CSRF token:\s+predictabletoken")
-        token = token_re.findall(response.content)[0]
-
-        assert token == b"CSRF token: predictabletoken"
-
-    @pytest.mark.skip(reason="REMOVED: Component.View extension")
-    def test_request_context_created_when_already_a_context_dict(self):
-        @register("thing")
-        class Thing(Component):
-            template: types.django_html = """
-                <p>CSRF token: {{ csrf_token|default:"<em>No CSRF token</em>" }}</p>
-                <p>Existing context: {{ existing_context|default:"<em>No existing context</em>" }}</p>
-            """
-
-            class View:
-                def get(self, request):
-                    return Thing.render_to_response(request=request, context={"existing_context": "foo"})
-
-        client = CustomClient(urlpatterns=[path("test_thing/", Thing.as_view())])
-        response = client.get("/test_thing/")
-
-        assert response.status_code == 200
-
-        token_re = re.compile(rb"CSRF token:\s+predictabletoken")
-        token = token_re.findall(response.content)[0]
-
-        assert token == b"CSRF token: predictabletoken"
-        assert "Existing context: foo" in response.content.decode()
-
     def request_context_ignores_context_when_already_a_context(self):
         @register("thing")
         class Thing(Component):
@@ -1410,70 +1285,6 @@ class TestComponentRender:
             rendered_resp.content.decode("utf-8"),
             "Variable: <strong data-djc-id-ca1bc3e>ca1bc3e</strong>",
         )
-
-    @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
-    @pytest.mark.skip(reason="REMOVED: Provide/Inject system")
-    def test_prepends_exceptions_with_component_path(self, components_settings):
-        @register("broken")
-        class Broken(Component):
-            template: types.django_html = """
-                {% load component_tags %}
-                <div> injected: {{ data|safe }} </div>
-                <main>
-                    {% slot "content" default / %}
-                </main>
-            """
-
-            def get_template_data(self, args, kwargs, slots, context):
-                data = self.inject("my_provide")
-                data["data1"]  # This should raise TypeError
-                return {"data": data}
-
-        @register("provider")
-        class Provider(Component):
-            def get_template_data(self, args, kwargs, slots, context):
-                return {"data": kwargs["data"]}
-
-            template: types.django_html = """
-                {% load component_tags %}
-                {% provide "my_provide" key="hi" data=data %}
-                    {% slot "content" default / %}
-                {% endprovide %}
-            """
-
-        @register("parent")
-        class Parent(Component):
-            def get_template_data(self, args, kwargs, slots, context):
-                return {"data": kwargs["data"]}
-
-            template: types.django_html = """
-                {% load component_tags %}
-                {% component "provider" data=data %}
-                    {% component "broken" %}
-                        {% slot "content" default / %}
-                    {% endcomponent %}
-                {% endcomponent %}
-            """
-
-        @register("root")
-        class Root(Component):
-            template: types.django_html = """
-                {% load component_tags %}
-                {% component "parent" data=123 %}
-                    {% fill "content" %}
-                        456
-                    {% endfill %}
-                {% endcomponent %}
-            """
-
-        with pytest.raises(
-            TypeError,
-            match=re.escape(
-                "An error occured while rendering components Root > parent > provider > provider(slot:content) > broken:\n"  # noqa: E501
-                "tuple indices must be integers or slices, not str",
-            ),
-        ):
-            Root.render()
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_prepends_exceptions_on_template_compile_error(self, components_settings):
