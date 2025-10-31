@@ -43,6 +43,7 @@ class InlineTemplateExtractor(ast.NodeVisitor):
 
         # Look for template attribute in class body
         for item in node.body:
+            # Handle regular assignment: template = """..."""
             if isinstance(item, ast.Assign):
                 for target in item.targets:
                     if isinstance(target, ast.Name) and target.id == 'template':
@@ -59,6 +60,22 @@ class InlineTemplateExtractor(ast.NodeVisitor):
                                 template_content,
                                 self.current_test_name
                             ))
+
+            # Handle annotated assignment: template: types.django_html = """..."""
+            elif isinstance(item, ast.AnnAssign):
+                if isinstance(item.target, ast.Name) and item.target.id == 'template':
+                    if item.value and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                        template_content = item.value.value
+                        start_line = item.lineno
+                        end_line = item.end_lineno or start_line
+
+                        self.templates.append((
+                            start_line,
+                            end_line,
+                            node.name,
+                            template_content,
+                            self.current_test_name
+                        ))
 
         self.generic_visit(node)
         self.current_class_name = old_class_name
