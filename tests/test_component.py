@@ -84,9 +84,7 @@ class TestComponentLegacyApi:
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_get_context_data(self, components_settings):
         class SimpleComponent(Component):
-            template = """
-                Variable: <strong>{{ variable }}</strong>
-            """
+            template_file = "test_component/simple_variable.html"
 
             def get_context_data(self, variable=None):
                 return {
