@@ -700,11 +700,7 @@ class TestSlot:
 
         @register("MyTopLevelComponent")
         class MyTopLevelComponent(Component):
-            template = """
-                {% for thing in words %}
-                    {% component "MyComponentBeingLooped" / %}
-                {% endfor %}
-            """
+            template_file = "test_slots/mytoplevelcomponent.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return {
@@ -713,21 +709,15 @@ class TestSlot:
 
         @register("MyComponentBeingLooped")
         class MyComponentBeingLooped(Component):
-            template = """
-                {% component "MyComponentWithASlot" %}
-                    {% fill "my_slot" %}
-                        {% component "MyInnerComponent" / %}
-                    {% endfill %}
-                {% endcomponent %}
-            """
+            template_file = "test_slots/mycomponentbeinglooped.html"
 
         @register("MyInnerComponent")
         class MyInnerComponent(Component):
-            template = "Hello!"
+            template_file = "test_slots/myinnercomponent.html"
 
         @register("MyComponentWithASlot")
         class MyComponentWithASlot(Component):
-            template = "CAPTURER"
+            template_file = "test_slots/mycomponentwithaslot.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 seen_slots.append(self.slots["my_slot"])
