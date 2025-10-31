@@ -231,6 +231,7 @@ class TestComponentLegacyApi:
         )
 
     # TODO_v1 - Remove
+    @pytest.mark.skip(reason="REMOVED: Template caching")
     def test_get_template_is_cached(self):
         class SimpleComponent(Component):
             def get_template(self, context):

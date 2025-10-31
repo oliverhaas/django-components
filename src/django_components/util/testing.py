@@ -493,14 +493,15 @@ def _clear_djc_global_state(
             if isinstance(loader, Loader):
                 loader.reset()
 
-    # NOTE: There are 1-2 tests which check Templates, so we need to clear the cache
-    from django_components.cache import component_media_cache, template_cache  # noqa: PLC0415
-
-    if template_cache:
-        template_cache.clear()
-
-    if component_media_cache:
-        component_media_cache.clear()
+    # REMOVED: Template and component media cache clearing (caching removed)
+    # # NOTE: There are 1-2 tests which check Templates, so we need to clear the cache
+    # from django_components.cache import component_media_cache, template_cache  # noqa: PLC0415
+    #
+    # if template_cache:
+    #     template_cache.clear()
+    #
+    # if component_media_cache:
+    #     component_media_cache.clear()
 
     if provide_cache:
         provide_cache.clear()

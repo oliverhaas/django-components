@@ -5,6 +5,7 @@
 
 import difflib
 import json
+import pytest
 from dataclasses import MISSING, dataclass, field
 from datetime import date, datetime, timedelta
 from enum import Enum
@@ -6052,6 +6053,7 @@ from django_components.testing import djc_test  # noqa: E402
 
 
 @djc_test
+@pytest.mark.skip(reason="REMOVED: JS/CSS dependencies - benchmark uses JS")
 def test_render(snapshot):
     registry.register("Button", Button)
     registry.register("Menu", Menu)

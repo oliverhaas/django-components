@@ -7,7 +7,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.template import Context, Origin, Template
 from django.template.loader import get_template as django_get_template
 
-from django_components.cache import get_template_cache
+# REMOVED: Component caching
+# from django_components.cache import get_template_cache
 from django_components.util.django_monkeypatch import is_cls_patched
 from django_components.util.loader import get_component_dirs
 from django_components.util.logger import trace_component_msg
@@ -62,20 +63,9 @@ def cached_template(
     ```
 
     """
-    template_cache = get_template_cache()
-
+    # REMOVED: Template caching - create templates directly now
     template_cls = template_cls or Template
-    template_cls_path = get_import_path(template_cls)
-    engine_cls_path = get_import_path(engine.__class__) if engine else None
-    cache_key = (template_cls_path, template_string, engine_cls_path)
-
-    maybe_cached_template: Optional[Template] = template_cache.get(cache_key)
-    if maybe_cached_template is None:
-        template = template_cls(template_string, origin=origin, name=name, engine=engine)
-        template_cache.set(cache_key, template)
-    else:
-        template = maybe_cached_template
-
+    template = template_cls(template_string, origin=origin, name=name, engine=engine)
     return template
 
 

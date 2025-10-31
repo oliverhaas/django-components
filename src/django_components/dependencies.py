@@ -28,7 +28,29 @@ from django.urls import path, reverse
 from django.utils.safestring import SafeString, mark_safe
 from djc_core_html_parser import set_html_attributes
 
-from django_components.cache import get_component_media_cache
+# REMOVED: Component media caching
+# from django_components.cache import get_component_media_cache
+
+# Simple replacement - no caching, just a dict-like object
+class _NoOpCache:
+    """No-op cache that doesn't actually cache anything"""
+    def __init__(self):
+        self._data = {}
+
+    def has_key(self, key):
+        return key in self._data
+
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+
+    def set(self, key, value):
+        self._data[key] = value
+
+    def clear(self):
+        self._data.clear()
+
+def get_component_media_cache():
+    return _NoOpCache()
 from django_components.constants import COMP_ID_LENGTH
 from django_components.node import BaseNode
 from django_components.util.misc import is_nonempty_str

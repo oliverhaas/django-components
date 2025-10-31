@@ -1,3 +1,4 @@
+import pytest
 from django.template import Template
 
 from django_components import Component, cached_template, types
@@ -12,6 +13,7 @@ setup_test_config()
 @djc_test
 class TestTemplateCache:
     # TODO_v1 - Remove
+    @pytest.mark.skip(reason="REMOVED: Template caching")
     def test_cached_template(self):
         template_1 = cached_template("Variable: <strong>{{ variable }}</strong>")
         template_1._test_id = "123"
@@ -21,6 +23,7 @@ class TestTemplateCache:
         assert template_2._test_id == "123"
 
     # TODO_v1 - Remove
+    @pytest.mark.skip(reason="REMOVED: Template caching")
     def test_cached_template_accepts_class(self):
         class MyTemplate(Template):
             pass
@@ -30,6 +33,7 @@ class TestTemplateCache:
 
     # TODO_v1 - Move to `test_component.py`. While `cached_template()` will be removed,
     #           we will internally still cache templates by class, and we will want to test for that.
+    @pytest.mark.skip(reason="REMOVED: Template caching")
     def test_component_template_is_cached(self):
         class SimpleComponent(Component):
             def get_template(self, context):
