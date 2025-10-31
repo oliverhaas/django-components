@@ -602,7 +602,7 @@ class TestComponentRenderAPI:
         comp: Any = None
 
         class TestComponent(Component):
-            template = ""
+            template_file = "test_component/args-kwargs-slots--available-outside-render.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 nonlocal comp
@@ -622,7 +622,7 @@ class TestComponentRenderAPI:
 
         @register("test")
         class TestComponent(Component):
-            template = "hello"
+            template_file = "test_component/metadata--template.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 nonlocal comp
@@ -656,14 +656,14 @@ class TestComponentRenderAPI:
 
         @register("test")
         class TestComponent(Component):
-            template = "hello"
+            template_file = "test_component/metadata--component.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 nonlocal comp
                 comp = self
 
         class Outer(Component):
-            template = "{% component 'test' only / %}"
+            template_file = "test_component/outer.html"
 
         rendered = Outer.render()
 
@@ -680,17 +680,15 @@ class TestComponentRenderAPI:
         assert comp.node is not None
         assert comp.node.template_component == Outer
 
-        if os.name == "nt":
-            assert comp.node.template_name.endswith("tests\\test_component.py::Outer")  # type: ignore[union-attr]
-        else:
-            assert comp.node.template_name.endswith("tests/test_component.py::Outer")  # type: ignore[union-attr]
+        # Now uses template_file, so template_name is the file path
+        assert comp.node.template_name.endswith("test_component/outer.html")  # type: ignore[union-attr]
 
     def test_metadata__python(self):
         comp: Any = None
 
         @register("test")
         class TestComponent(Component):
-            template = "hello"
+            template_file = "test_component/metadata--python.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 nonlocal comp
@@ -1251,7 +1249,7 @@ class TestComponentRender:
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_render_can_access_instance(self, components_settings):
         class TestComponent(Component):
-            template = "Variable: <strong>{{ id }}</strong>"
+            template_file = "test_component/render-can-access-instance.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return {
@@ -1267,7 +1265,7 @@ class TestComponentRender:
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_render_to_response_can_access_instance(self, components_settings):
         class TestComponent(Component):
-            template = "Variable: <strong>{{ id }}</strong>"
+            template_file = "test_component/render-to-response-can-access-instance.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return {
@@ -1284,14 +1282,10 @@ class TestComponentRender:
     def test_prepends_exceptions_on_template_compile_error(self, components_settings):
         @register("simple_component")
         class SimpleComponent(Component):
-            template = "hello"
+            template_file = "test_component/prepends-exceptions-on-template-compile-error.html"
 
         class Other(Component):
-            template = """
-                {% load component_tags %}
-                {% component "simple_component" %}
-                {% endif %}
-            """
+            template_file = "test_component/other.html"
 
         with pytest.raises(
             TemplateSyntaxError,
@@ -1306,13 +1300,10 @@ class TestComponentRender:
     def test_prepends_exceptions_on_template_compile_error2(self, components_settings):
         @register("simple_component")
         class SimpleComponent(Component):
-            template = "hello"
+            template_file = "test_component/prepends-exceptions-on-template-compile-error2.html"
 
         class Other(Component):
-            template = """
-                {% load component_tags %}
-                {% component "simple_component" %}
-            """
+            template_file = "test_component/other-1.html"
 
         with pytest.raises(
             TemplateSyntaxError,
@@ -1378,7 +1369,7 @@ class TestComponentRender:
 class TestComponentHook:
     def _gen_slotted_component(self, calls: List[str]):
         class Slotted(Component):
-            template = "Hello from slotted"
+            template_file = "test_component/slotted.html"
 
             def on_render_before(self, context: Context, template: Optional[Template]) -> None:
                 calls.append("slotted__on_render_before")
