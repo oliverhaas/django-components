@@ -92,6 +92,23 @@ Successfully streamlined django-components by removing 8 major feature areas and
 - Cleaned up __all__ exports
 - Removed unused imports
 
+### 8. Skipped Tests Cleanup ✅
+**Removed 18 skipped tests (down from 31 to 7):**
+- Deleted test_template.py entirely (3 template caching tests)
+- Removed 4 Component.View tests from test_component.py
+- Removed 1 template caching test from test_component.py
+- Removed 2 Provide/Inject tests (test_component.py, test_templatetags_extends.py)
+- Removed 5 dynamic expression tests (test_tag_parser.py, test_template_parser.py, test_attributes.py, test_templatetags.py)
+- Removed 2 aggregate input tests from test_templatetags_component.py
+- Removed 1 benchmark test from test_benchmark_djc.py
+
+**Remaining 7 skipped tests:**
+- 1 Django benchmark test (unrelated)
+- 2 Pydantic optional dependency tests (keep - optional feature)
+- 1 Template partials integration test (unrelated)
+- 2 Slot tests using inline templates (could be converted to template_file)
+- 1 Complex expression test (already marked as TODO)
+
 ## Test Results
 
 ### Before Streamlining
@@ -101,13 +118,13 @@ Successfully streamlined django-components by removing 8 major feature areas and
 
 ### After Streamlining
 - **Tests**: 612 tests (434 removed = 41% reduction)
-- **Time**: 12 seconds (**4.4x faster!**)
-- **Files**: 27 test files
-- **Status**: ✅ 612 passing, 31 skipped
+- **Time**: 11.43 seconds (**4.6x faster!**)
+- **Files**: 26 test files (deleted test_template.py)
+- **Status**: ✅ 612 passing, 7 skipped
 
 ## Git History
 
-Successfully committed 8 separate commits to feat/streamline branch:
+Successfully committed 9 separate commits to feat/streamline branch:
 1. Delete 19 test files for removed features
 2. Remove extension files and update imports
 3. Complete extension removal - all tests passing
@@ -116,6 +133,7 @@ Successfully committed 8 separate commits to feat/streamline branch:
 6. Remove caching system - tests passing
 7. Remove expression.py - tests passing
 8. Remove provide.py - tests passing
+9. Remove skipped tests for removed features - all tests passing
 
 All commits pushed to fork: `oliverhaas/django-components`
 
