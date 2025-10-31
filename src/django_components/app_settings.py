@@ -800,10 +800,6 @@ class InternalSettings:
             cast("List[str]", defaults.extensions),
         )
 
-        # REMOVED: Built-in extensions (cache, defaults, dependencies, view, debug_highlight)
-        # No built-in extensions anymore
-        # extensions stays as-is (user-defined extensions only)
-
         # Extensions may be passed in either as classes or import strings.
         extension_instances: List[ComponentExtension] = []
         for extension in extensions:

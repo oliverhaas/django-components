@@ -52,11 +52,6 @@ from django_components.extension import (
     OnComponentRenderedContext,
     extensions,
 )
-# REMOVED: Extensions
-# from django_components.extensions.cache import ComponentCache
-# from django_components.extensions.debug_highlight import ComponentDebugHighlight
-# from django_components.extensions.defaults import ComponentDefaults
-# from django_components.extensions.view import ComponentView, ViewFn
 from django_components.node import BaseNode
 from django_components.perfutil.component import (
     OnComponentRenderedResult,
@@ -2244,11 +2239,6 @@ class Component(metaclass=ComponentMeta):
         """
 
     # #####################################
-    # BUILT-IN EXTENSIONS - REMOVED
-    # #####################################
-    # REMOVED: Cache, Defaults, View, DebugHighlight extensions
-
-    # #####################################
     # MISC
     # #####################################
 
@@ -3008,8 +2998,6 @@ class Component(metaclass=ComponentMeta):
         As the `{{ message }}` is taken from the "my_provide" provider.
         """
         return get_injected_context_var(self.id, self.name, key, default)
-
-    # REMOVED: as_view() method (Component.View extension removed)
 
     # #####################################
     # RENDERING

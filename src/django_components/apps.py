@@ -19,9 +19,6 @@ class ComponentsConfig(AppConfig):
         from django_components.app_settings import app_settings
         from django_components.autodiscovery import autodiscover, import_libraries
         from django_components.component_registry import registry
-        # REMOVED: Built-in components
-        # from django_components.components.dynamic import DynamicComponent
-        # from django_components.components.error_fallback import ErrorFallback
         from django_components.extension import extensions
         from django_components.util.django_monkeypatch import (
             monkeypatch_include_node,
@@ -69,8 +66,6 @@ class ComponentsConfig(AppConfig):
             from django.template import base
 
             base.tag_re = re.compile(base.tag_re.pattern, re.DOTALL)
-
-        # REMOVED: Built-in component registration (DynamicComponent, ErrorFallback)
 
         # Let extensions process any components which may have been created before the app was ready
         extensions._init_app()

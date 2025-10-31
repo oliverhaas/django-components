@@ -51,11 +51,6 @@ from django_components.extension import (
     OnTemplateCompiledContext,
     OnTemplateLoadedContext,
 )
-# REMOVED: Extensions
-# from django_components.extensions.cache import ComponentCache
-# from django_components.extensions.defaults import ComponentDefaults, Default, get_component_defaults
-# from django_components.extensions.debug_highlight import ComponentDebugHighlight
-# from django_components.extensions.view import ComponentView, get_component_url
 from django_components.library import TagProtectedError
 from django_components.node import BaseNode, template_tag
 from django_components.provide import ProvideNode
@@ -85,9 +80,6 @@ from django_components.util.loader import ComponentFileEntry, get_component_dirs
 from django_components.util.routing import URLRoute, URLRouteHandler
 from django_components.util.types import Empty
 
-# REMOVED: Built-in components
-# from django_components.components import DynamicComponent, ErrorFallback
-
 # isort: on
 
 
@@ -101,10 +93,7 @@ __all__ = [
     "CommandParserInput",
     "CommandSubcommand",
     "Component",
-    # REMOVED: "ComponentCache",
     "ComponentCommand",
-    # REMOVED: "ComponentDebugHighlight",
-    # REMOVED: "ComponentDefaults",
     "ComponentExtension",
     "ComponentFileEntry",
     "ComponentFormatter",
@@ -114,14 +103,10 @@ __all__ = [
     "ComponentNode",
     "ComponentRegistry",
     "ComponentVars",
-    # REMOVED: "ComponentView",
     "ComponentsSettings",
     "ContextBehavior",
-    # REMOVED: "Default",
     "DependenciesStrategy",
-    # REMOVED: "DynamicComponent",
     "Empty",
-    # REMOVED: "ErrorFallback",
     "ExtensionComponentConfig",
     "FillNode",
     "NotRegistered",
@@ -163,10 +148,8 @@ __all__ = [
     "component_shorthand_formatter",
     "format_attributes",
     "get_component_by_class_id",
-    # REMOVED: "get_component_defaults",
     "get_component_dirs",
     "get_component_files",
-    # REMOVED: "get_component_url",
     "import_libraries",
     "merge_attributes",
     "register",
