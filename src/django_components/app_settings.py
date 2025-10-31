@@ -800,24 +800,6 @@ class InternalSettings:
             cast("List[str]", defaults.extensions),
         )
 
-        # Prepend built-in extensions
-        from django_components.extensions.cache import CacheExtension
-        from django_components.extensions.debug_highlight import DebugHighlightExtension
-        from django_components.extensions.defaults import DefaultsExtension
-        from django_components.extensions.dependencies import DependenciesExtension
-        from django_components.extensions.view import ViewExtension
-
-        extensions = cast(
-            "List[Type[ComponentExtension]]",
-            [
-                CacheExtension,
-                DefaultsExtension,
-                DependenciesExtension,
-                ViewExtension,
-                DebugHighlightExtension,
-            ],
-        ) + list(extensions)
-
         # Extensions may be passed in either as classes or import strings.
         extension_instances: List[ComponentExtension] = []
         for extension in extensions:

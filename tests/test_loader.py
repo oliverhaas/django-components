@@ -248,9 +248,7 @@ class TestComponentFiles:
             "components.single_file",
             "components.staticfiles.staticfiles",
             "components.urls",
-            "django_components.components",
-            "django_components.components.dynamic",
-            "django_components.components.error_fallback",
+            "django_components.components",  # Empty module (built-in components removed)
             "tests.test_app.components.app_lvl_comp.app_lvl_comp",
         ]
 
@@ -264,9 +262,10 @@ class TestComponentFiles:
         assert file_paths[6].parts[-4:] == ("tests", "components", "staticfiles", "staticfiles.py")
         assert file_paths[7].parts[-3:] == ("tests", "components", "urls.py")
         assert file_paths[8].parts[-3:] == ("django_components", "components", "__init__.py")
-        assert file_paths[9].parts[-3:] == ("django_components", "components", "dynamic.py")
-        assert file_paths[10].parts[-3:] == ("django_components", "components", "error_fallback.py")
-        assert file_paths[11].parts[-5:] == ("tests", "test_app", "components", "app_lvl_comp", "app_lvl_comp.py")
+        # REMOVED: Built-in components (dynamic.py, error_fallback.py)
+        # assert file_paths[9].parts[-3:] == ("django_components", "components", "dynamic.py")
+        # assert file_paths[10].parts[-3:] == ("django_components", "components", "error_fallback.py")
+        assert file_paths[9].parts[-5:] == ("tests", "test_app", "components", "app_lvl_comp", "app_lvl_comp.py")
 
     @djc_test(
         django_settings={

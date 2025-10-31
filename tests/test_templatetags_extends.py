@@ -1,5 +1,6 @@
 """Catch-all for tests that use template tags and don't fit other files"""
 
+import pytest
 from django.template import Context, Template
 from pytest_django.asserts import assertHTMLEqual
 
@@ -938,45 +939,6 @@ class TestExtendsCompat:
                     <main>
                         Helloodiddoo
                         SLOT_NEW__OVERRIDEN
-                    </main>
-                    <footer>Default footer</footer>
-                </custom-template>
-            </body>
-            </html>
-        """
-        assertHTMLEqual(rendered, expected)
-
-    @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
-    def test_inject_inside_block(self, components_settings):
-        registry.register("slotted_component", gen_slotted_component())
-
-        @register("injectee")
-        class InjectComponent(Component):
-            template: types.django_html = """
-                <div> injected: {{ var|safe }} </div>
-            """
-
-            def get_template_data(self, args, kwargs, slots, context):
-                var = self.inject("block_provide")
-                return {"var": var}
-
-        template: types.django_html = """
-            {% extends "block_in_component_provide.html" %}
-            {% load component_tags %}
-            {% block body %}
-                {% component "injectee" %}
-                {% endcomponent %}
-            {% endblock %}
-        """
-        rendered = Template(template).render(Context({"DJC_DEPS_STRATEGY": "ignore"}))
-        expected = """
-            <!DOCTYPE html>
-            <html lang="en">
-            <body>
-                <custom-template data-djc-id-ca1bc44>
-                    <header></header>
-                    <main>
-                        <div data-djc-id-ca1bc4b> injected: DepInject(hello='from_block') </div>
                     </main>
                     <footer>Default footer</footer>
                 </custom-template>

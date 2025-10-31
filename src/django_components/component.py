@@ -52,10 +52,6 @@ from django_components.extension import (
     OnComponentRenderedContext,
     extensions,
 )
-from django_components.extensions.cache import ComponentCache
-from django_components.extensions.debug_highlight import ComponentDebugHighlight
-from django_components.extensions.defaults import ComponentDefaults
-from django_components.extensions.view import ComponentView, ViewFn
 from django_components.node import BaseNode
 from django_components.perfutil.component import (
     OnComponentRenderedResult,
@@ -64,7 +60,13 @@ from django_components.perfutil.component import (
     component_post_render,
 )
 from django_components.perfutil.provide import register_provide_reference, unlink_component_from_provide_on_gc
-from django_components.provide import get_injected_context_var
+# REMOVED: Provide/Inject system
+# from django_components.provide import get_injected_context_var
+
+# Stub for removed provide/inject
+def get_injected_context_var(comp_id, comp_name, key, default=None):
+    return default
+
 from django_components.slots import (
     Slot,
     SlotIsFilled,
@@ -2243,91 +2245,6 @@ class Component(metaclass=ComponentMeta):
         """
 
     # #####################################
-    # BUILT-IN EXTENSIONS
-    # #####################################
-
-    # NOTE: These are the classes and instances added by defaults extensions. These fields
-    # are actually set at runtime, and so here they are only marked for typing.
-    Cache: ClassVar[Type[ComponentCache]]
-    """
-    The fields of this class are used to configure the component caching.
-
-    Read more about [Component caching](../../concepts/advanced/component_caching).
-
-    **Example:**
-
-    ```python
-    from django_components import Component
-
-    class MyComponent(Component):
-        class Cache:
-            enabled = True
-            ttl = 60 * 60 * 24  # 1 day
-            cache_name = "my_cache"
-    ```
-    """
-    cache: ComponentCache
-    """
-    Instance of [`ComponentCache`](../api#django_components.ComponentCache) available at component render time.
-    """
-    Defaults: ClassVar[Type[ComponentDefaults]]
-    """
-    The fields of this class are used to set default values for the component's kwargs.
-
-    These defaults will be merged with defaults on [`Component.Kwargs`](../api/#django_components.Component.Kwargs).
-
-    Read more about [Component defaults](../../concepts/fundamentals/component_defaults).
-
-    **Example:**
-
-    ```python
-    from django_components import Component, Default
-
-    class MyComponent(Component):
-        class Defaults:
-            position = "left"
-            selected_items = Default(lambda: [1, 2, 3])
-    ```
-    """
-    defaults: ComponentDefaults
-    """
-    Instance of [`ComponentDefaults`](../api#django_components.ComponentDefaults) available at component render time.
-    """
-    View: ClassVar[Type[ComponentView]]
-    """
-    The fields of this class are used to configure the component views and URLs.
-
-    This class is a subclass of
-    [`django.views.View`](https://docs.djangoproject.com/en/5.2/ref/class-based-views/base/#view).
-    The [`Component`](../api#django_components.Component) instance is available
-    via `self.component`.
-
-    Override the methods of this class to define the behavior of the component.
-
-    Read more about [Component views and URLs](../../concepts/fundamentals/component_views_urls).
-
-    **Example:**
-
-    ```python
-    class MyComponent(Component):
-        class View:
-            def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-                return HttpResponse("Hello, world!")
-    ```
-    """
-    view: ComponentView
-    """
-    Instance of [`ComponentView`](../api#django_components.ComponentView) available at component render time.
-    """
-    DebugHighlight: ClassVar[Type[ComponentDebugHighlight]]
-    """
-    The fields of this class are used to configure the component debug highlighting.
-
-    Read more about [Component debug highlighting](../../guides/other/troubleshooting#component-and-slot-highlighting).
-    """
-    debug_highlight: ComponentDebugHighlight
-
-    # #####################################
     # MISC
     # #####################################
 
@@ -3087,27 +3004,6 @@ class Component(metaclass=ComponentMeta):
         As the `{{ message }}` is taken from the "my_provide" provider.
         """
         return get_injected_context_var(self.id, self.name, key, default)
-
-    @classmethod
-    def as_view(cls, **initkwargs: Any) -> ViewFn:
-        """
-        Shortcut for calling `Component.View.as_view` and passing component instance to it.
-
-        Read more on [Component views and URLs](../../concepts/fundamentals/component_views_urls).
-        """
-
-        # NOTE: `Component.View` may not be available at the time that URLs are being
-        # defined. So we return a view that calls `View.as_view()` only once it's actually called.
-        def outer_view(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-            # `view` is a built-in extension defined in `extensions.view`. It subclasses
-            # from Django's `View` class, and adds the `component` attribute to it.
-            view_cls = cast("View", cls.View)  # type: ignore[attr-defined]
-
-            # TODO_v1 - Remove `component` and use only `component_cls` instead.
-            inner_view = view_cls.as_view(**initkwargs, component=cls(), component_cls=cls)
-            return inner_view(request, *args, **kwargs)
-
-        return outer_view
 
     # #####################################
     # RENDERING

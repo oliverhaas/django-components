@@ -51,13 +51,10 @@ from django_components.extension import (
     OnTemplateCompiledContext,
     OnTemplateLoadedContext,
 )
-from django_components.extensions.cache import ComponentCache
-from django_components.extensions.defaults import ComponentDefaults, Default, get_component_defaults
-from django_components.extensions.debug_highlight import ComponentDebugHighlight
-from django_components.extensions.view import ComponentView, get_component_url
 from django_components.library import TagProtectedError
 from django_components.node import BaseNode, template_tag
-from django_components.provide import ProvideNode
+# REMOVED: Provide/Inject system
+# from django_components.provide import ProvideNode
 from django_components.slots import (
     FillNode,
     Slot,
@@ -84,9 +81,6 @@ from django_components.util.loader import ComponentFileEntry, get_component_dirs
 from django_components.util.routing import URLRoute, URLRouteHandler
 from django_components.util.types import Empty
 
-# NOTE: Import built-in components last to avoid circular imports
-from django_components.components import DynamicComponent, ErrorFallback
-
 # isort: on
 
 
@@ -100,10 +94,7 @@ __all__ = [
     "CommandParserInput",
     "CommandSubcommand",
     "Component",
-    "ComponentCache",
     "ComponentCommand",
-    "ComponentDebugHighlight",
-    "ComponentDefaults",
     "ComponentExtension",
     "ComponentFileEntry",
     "ComponentFormatter",
@@ -113,14 +104,10 @@ __all__ = [
     "ComponentNode",
     "ComponentRegistry",
     "ComponentVars",
-    "ComponentView",
     "ComponentsSettings",
     "ContextBehavior",
-    "Default",
     "DependenciesStrategy",
-    "DynamicComponent",
     "Empty",
-    "ErrorFallback",
     "ExtensionComponentConfig",
     "FillNode",
     "NotRegistered",
@@ -137,7 +124,7 @@ __all__ = [
     "OnSlotRenderedContext",
     "OnTemplateCompiledContext",
     "OnTemplateLoadedContext",
-    "ProvideNode",
+    # REMOVED: "ProvideNode",
     "RegistrySettings",
     "ShorthandComponentFormatter",
     "Slot",
@@ -162,10 +149,8 @@ __all__ = [
     "component_shorthand_formatter",
     "format_attributes",
     "get_component_by_class_id",
-    "get_component_defaults",
     "get_component_dirs",
     "get_component_files",
-    "get_component_url",
     "import_libraries",
     "merge_attributes",
     "register",

@@ -44,7 +44,15 @@ from django.template.base import FilterExpression, Parser
 from django.template.context import Context
 from django.template.exceptions import TemplateSyntaxError
 
-from django_components.expression import DynamicFilterExpression, is_dynamic_expression
+# REMOVED: Template expression enhancements
+# from django_components.expression import DynamicFilterExpression, is_dynamic_expression
+
+# Stubs - no longer support dynamic expressions
+def is_dynamic_expression(serialized):
+    return False
+
+# Not used since is_dynamic_expression always returns False
+DynamicFilterExpression = None
 
 TAG_WHITESPACE = (" ", "\t", "\n", "\r", "\f")
 TAG_FILTER = ("|", ":")

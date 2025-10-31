@@ -2850,66 +2850,6 @@ class TestResolver:
         resolved = attrs[0].value.resolve(context)
         assert resolved == {"key": "foo", "bar": "baz", "key3": "baz"}
 
-    def test_resolve_dynamic_expr(self):
-        parser = _get_parser()
-        _, attrs = parse_tag("'{% lorem 4 w %}'", parser)
-        resolved = attrs[0].value.resolve(Context())
-        assert resolved == "lorem ipsum dolor sit"
-
-    def test_resolve_complex(self):
-        parser = _get_parser()
-
-        _, attrs = parse_tag(
-            """
-            data={
-                "items": [
-                    1|add:2,
-                    {"x"|upper: 2|add:3},
-                    *spread_items
-                ],
-                "nested": {
-                    "a": [
-                        1|add:2,
-                        *nums|default:"",
-                        *"{% lorem 1 w %}",
-                    ],
-                    "b": {
-                        "x": [
-                            *more|first,
-                        ],
-                        "{% lorem 2 w %}": "{% lorem 3 w %}",
-                    }
-                },
-                **rest,
-                "key": _('value')|upper
-            }
-            """,
-            parser,
-        )
-
-        context = Context(
-            {
-                "spread_items": ["foo", "bar"],
-                "nums": [1, 2, 3],
-                "more": ["baz", "qux"],
-                "rest": {"a": "b"},
-            },
-        )
-        resolved = attrs[0].value.resolve(context)
-
-        assert resolved == {
-            "items": [3, {"X": 5}, "foo", "bar"],
-            "nested": {
-                "a": [3, 1, 2, 3, "l", "o", "r", "e", "m"],
-                "b": {
-                    "x": ["b", "a", "z"],
-                    "lorem ipsum": "lorem ipsum dolor",
-                },
-            },
-            "a": "b",
-            "key": "VALUE",
-        }
-
     @skip("TODO: Enable once template parsing is fixed by us")
     def test_resolve_complex_as_component(self):
         captured = None
@@ -2992,32 +2932,3 @@ class TestResolver:
         Template(template_str).render(Context({"myvar": "myval", "val2": [1, 2, 3]}))
 
         assert captured == ([42, "myval"], {"key": "val", "key2": [1, 2, 3]})
-
-    def test_component_special_kwargs(self):
-        captured = None
-
-        @register("test")
-        class Test(Component):
-            template = "var"
-
-            def get_template_data(self, args, kwargs, slots, context):
-                nonlocal captured
-                captured = args, kwargs
-
-        template_str: types.django_html = """
-            {% load component_tags %}
-            {% component 'test' date=date @lol=2 na-me=bzz @event:na-me.mod=bzz #my-id=True %}
-            {% endcomponent %}
-        """
-        Template(template_str).render(Context({"date": 2024, "bzz": "fzz"}))
-
-        assert captured == (
-            [],
-            {
-                "date": 2024,
-                "@lol": 2,
-                "na-me": "fzz",
-                "@event": {"na-me.mod": "fzz"},
-                "#my-id": True,
-            },
-        )

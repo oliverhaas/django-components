@@ -1,5 +1,6 @@
 """Catch-all for tests that use template tags and don't fit other files"""
 
+import pytest
 from django.template import Context, Template
 from pytest_django.asserts import assertHTMLEqual
 
@@ -59,21 +60,6 @@ class TestNestedTags:
             return {
                 "var": kwargs["var"],
             }
-
-    # See https://github.com/django-components/django-components/discussions/671
-    @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
-    def test_nested_tags(self, components_settings):
-        registry.register("test", self.SimpleComponent)
-
-        template: types.django_html = """
-            {% load component_tags %}
-            {% component "test" var="{% lorem 1 w %}" %}{% endcomponent %}
-        """
-        rendered = Template(template).render(Context())
-        expected = """
-            Variable: <strong data-djc-id-ca1bc3f>lorem</strong>
-        """
-        assertHTMLEqual(rendered, expected)
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
     def test_nested_quote_single(self, components_settings):

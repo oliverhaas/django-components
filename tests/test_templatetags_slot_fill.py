@@ -40,7 +40,7 @@ class TestComponentSlot:
 
         @register("test2")
         class SimpleComponent(Component):
-            template = """Variable: <strong>{{ variable }}</strong>"""
+            template_file = "test_templatetags_slot_fill/slotted-template-basic.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return {
@@ -96,7 +96,7 @@ class TestComponentSlot:
 
         @register("test2")
         class SimpleComponent(Component):
-            template = """Variable: <strong>{{ variable }}</strong>"""
+            template_file = "test_templatetags_slot_fill/slotted-template-basic-self-closing.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return {

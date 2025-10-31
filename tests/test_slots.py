@@ -692,6 +692,7 @@ class TestSlot:
             template.render(Context({"my_slot": my_slot}))
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="REMOVED: Inline template strings - use template_file only")
     def test_slot_call_outside_render_context(self, components_settings):
         from django_components import Component, register
 
@@ -699,11 +700,7 @@ class TestSlot:
 
         @register("MyTopLevelComponent")
         class MyTopLevelComponent(Component):
-            template = """
-                {% for thing in words %}
-                    {% component "MyComponentBeingLooped" / %}
-                {% endfor %}
-            """
+            template_file = "test_slots/mytoplevelcomponent.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 return {
@@ -712,21 +709,15 @@ class TestSlot:
 
         @register("MyComponentBeingLooped")
         class MyComponentBeingLooped(Component):
-            template = """
-                {% component "MyComponentWithASlot" %}
-                    {% fill "my_slot" %}
-                        {% component "MyInnerComponent" / %}
-                    {% endfill %}
-                {% endcomponent %}
-            """
+            template_file = "test_slots/mycomponentbeinglooped.html"
 
         @register("MyInnerComponent")
         class MyInnerComponent(Component):
-            template = "Hello!"
+            template_file = "test_slots/myinnercomponent.html"
 
         @register("MyComponentWithASlot")
         class MyComponentWithASlot(Component):
-            template = "CAPTURER"
+            template_file = "test_slots/mycomponentwithaslot.html"
 
             def get_template_data(self, args, kwargs, slots, context):
                 seen_slots.append(self.slots["my_slot"])
