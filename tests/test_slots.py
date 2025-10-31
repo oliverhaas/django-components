@@ -692,6 +692,7 @@ class TestSlot:
             template.render(Context({"my_slot": my_slot}))
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="REMOVED: Inline template strings - use template_file only")
     def test_slot_call_outside_render_context(self, components_settings):
         from django_components import Component, register
 

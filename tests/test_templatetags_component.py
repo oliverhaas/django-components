@@ -449,6 +449,7 @@ class TestAggregateInput:
 @djc_test
 class TestRecursiveComponent:
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="REMOVED: Component.Defaults extension")
     def test_recursive_component(self, components_settings):
         DEPTH = 100
 

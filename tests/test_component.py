@@ -1226,6 +1226,7 @@ class TestComponentRender:
     # See https://github.com/django-components/django-components/issues/580
     # And https://github.com/django-components/django-components/issues/634
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="REMOVED: Component.View extension")
     def test_request_context_is_populated_from_context_processors(self, components_settings):
         @register("thing")
         class Thing(Component):
@@ -1279,6 +1280,7 @@ class TestComponentRender:
 
         assert token == b"CSRF token: predictabletoken"
 
+    @pytest.mark.skip(reason="REMOVED: Component.View extension")
     def test_request_context_created_when_no_context(self):
         @register("thing")
         class Thing(Component):
@@ -1300,6 +1302,7 @@ class TestComponentRender:
 
         assert token == b"CSRF token: predictabletoken"
 
+    @pytest.mark.skip(reason="REMOVED: Component.View extension")
     def test_request_context_created_when_already_a_context_dict(self):
         @register("thing")
         class Thing(Component):
@@ -1513,6 +1516,7 @@ class TestComponentRender:
             Other.render()
 
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="Optional pydantic dependency not installed")
     def test_pydantic_exception(self, components_settings):
         from pydantic import BaseModel, ValidationError
 
