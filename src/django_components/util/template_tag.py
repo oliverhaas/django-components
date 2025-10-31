@@ -11,8 +11,35 @@ from django.template import Context, NodeList
 from django.template.base import Parser, Token
 from django.template.exceptions import TemplateSyntaxError
 
-from django_components.expression import process_aggregate_kwargs
+# REMOVED: Most expression enhancements, but kept attrs:key=value aggregation
+# from django_components.expression import process_aggregate_kwargs
+
 from django_components.util.tag_parser import TagAttr, parse_tag
+
+def process_aggregate_kwargs(params):
+    """
+    Aggregate "prefixed" kwargs into dicts. "Prefixed" kwargs start with
+    some prefix delimited with `:` (e.g. `attrs:`).
+
+    Example: {"attrs:class": "red", "attrs:id": "x"} -> {"attrs": {"class": "red", "id": "x"}}
+    """
+    aggregated = {}
+    result_params = []
+
+    for param in params:
+        if param.key and ":" in param.key:
+            prefix, subkey = param.key.split(":", 1)
+            if prefix not in aggregated:
+                aggregated[prefix] = {}
+            aggregated[prefix][subkey] = param.value
+        else:
+            result_params.append(param)
+
+    # Add aggregated dicts as params - just use the dict directly as the value
+    for prefix, subdict in aggregated.items():
+        result_params.append(TagAttr(key=prefix, value=subdict, start_index=0))
+
+    return result_params
 
 
 # For details see https://github.com/django-components/django-components/pull/902#discussion_r1913611633

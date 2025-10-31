@@ -1,3 +1,4 @@
+import pytest
 from django.template import Context
 from django.template.base import Template, Token, TokenType
 from pytest_django.asserts import assertHTMLEqual
@@ -206,6 +207,7 @@ class TestTemplateParser:
         assert token_tuples == expected_tokens
 
     # Check that a template that contains `{% %}` inside of a component tag is parsed correctly
+    @pytest.mark.skip(reason="REMOVED: Dynamic template expressions")
     def test_component_mixed(self):
         @register("test")
         class Test(Component):

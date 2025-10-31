@@ -2850,12 +2850,14 @@ class TestResolver:
         resolved = attrs[0].value.resolve(context)
         assert resolved == {"key": "foo", "bar": "baz", "key3": "baz"}
 
+    @pytest.mark.skip(reason="REMOVED: Dynamic expressions")
     def test_resolve_dynamic_expr(self):
         parser = _get_parser()
         _, attrs = parse_tag("'{% lorem 4 w %}'", parser)
         resolved = attrs[0].value.resolve(Context())
         assert resolved == "lorem ipsum dolor sit"
 
+    @pytest.mark.skip(reason="REMOVED: Complex expression parsing")
     def test_resolve_complex(self):
         parser = _get_parser()
 
@@ -2993,6 +2995,7 @@ class TestResolver:
 
         assert captured == ([42, "myval"], {"key": "val", "key2": [1, 2, 3]})
 
+    @pytest.mark.skip(reason="REMOVED: Special kwargs like spread operator")
     def test_component_special_kwargs(self):
         captured = None
 

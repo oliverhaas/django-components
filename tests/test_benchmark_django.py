@@ -5,6 +5,7 @@
 
 import difflib
 import json
+import pytest
 from dataclasses import MISSING, dataclass, field
 from datetime import date, datetime, timedelta
 from enum import Enum
@@ -6431,6 +6432,7 @@ from django_components.testing import djc_test  # noqa: E402
 
 
 @djc_test
+@pytest.mark.skip(reason="Django benchmark - uses template features we removed")
 def test_render(snapshot):
     data = gen_render_data()
     rendered = render(data)

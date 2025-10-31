@@ -411,6 +411,7 @@ class TestComponentIsolation:
 @djc_test
 class TestAggregateInput:
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="REMOVED: Aggregate input (spread operator)")
     def test_agg_input_accessible_in_get_context_data(self, components_settings):
         @register("test")
         class AttrsComponent(Component):

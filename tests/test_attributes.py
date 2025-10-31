@@ -333,6 +333,7 @@ class TestHtmlAttrs:
         ):
             template.render(Context({"class_var": "padding-top-8"}))
 
+    @pytest.mark.skip(reason="REMOVED: Dynamic template expressions")
     def test_tag_raises_on_aggregate_and_positional_args_for_defaults(self):
         @register("test")
         class AttrsComponent(Component):

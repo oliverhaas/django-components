@@ -1,5 +1,6 @@
 """Catch-all for tests that use template tags and don't fit other files"""
 
+import pytest
 from django.template import Context, Template
 from pytest_django.asserts import assertHTMLEqual
 
@@ -62,6 +63,7 @@ class TestNestedTags:
 
     # See https://github.com/django-components/django-components/discussions/671
     @djc_test(parametrize=PARAMETRIZE_CONTEXT_BEHAVIOR)
+    @pytest.mark.skip(reason="REMOVED: Dynamic template expressions")
     def test_nested_tags(self, components_settings):
         registry.register("test", self.SimpleComponent)
 
